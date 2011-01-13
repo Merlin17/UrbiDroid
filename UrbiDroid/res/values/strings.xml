@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, MainActivity!</string>
+    <string name="app_name">UrbiDroid</string>
+    <string name="left">Gauche</string>
+    <string name="right">Droite</string>
+    <string name="walk">Avancer</string>
+    <string name="stop">Stop</string>
+</resources>
