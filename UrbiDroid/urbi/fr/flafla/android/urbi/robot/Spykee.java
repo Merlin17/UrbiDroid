@@ -7,6 +7,8 @@ import java.net.Socket;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import fr.flafla.android.urbi.control.Axes;
+import fr.flafla.android.urbi.control.Axes.Axis;
 
 /**
  * Classe de gestion du robot Spykee avec urbi.
@@ -27,9 +29,10 @@ public class Spykee extends Robot {
 	private boolean init = false;
 	
 	
-	
-	public Spykee() {
-		super();
+	public Spykee(String ip, int port) {
+		super(ip, port, new Axes[] {
+				new Axes(null, new Axis(-100, 100)), new Axes(null, new Axis(-100, 100))
+		});
 		ensureSocket();
 	}
 	

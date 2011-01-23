@@ -12,6 +12,8 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.widget.Toast;
 import fr.flafla.android.urbi.R;
+import fr.flafla.android.urbi.control.Axes;
+import fr.flafla.android.urbi.control.Axes.Axis;
 
 /**
  * Faux robot utile pour le développement. Les actions sont affichées à l'écran
@@ -25,7 +27,10 @@ public class FakeRobot extends Robot {
 	private Toast toast;
 	private final Context context;
 
-	public FakeRobot(Context context) {
+	public FakeRobot(String ip, int port, Context context) {
+		super(ip, port, new Axes[] {
+				new Axes(null, new Axis(-100, 100)), new Axes(null, new Axis(-100, 100))
+		});
 		this.context = context;
 	}
 	
