@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-		Robot.actuel = new FakeRobot(this);
+		Robot.actuel = new FakeRobot("spykee", UClient.PORT, this);
 
 		// surface = new CommandSurface(this);
 		// setContentView(surface);
