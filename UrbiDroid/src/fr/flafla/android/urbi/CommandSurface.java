@@ -24,12 +24,12 @@ import fr.flafla.android.urbi.robot.Robot.ImageHandler;
 
 /**
  * @author merlin
- *
+ * 
  */
 public class CommandSurface extends SurfaceView implements Callback,
 		OnTouchListener {
 	private static final int nbJoystick = 2;
-	
+
 	/**
 	 * La liste des pointers de joystick
 	 */
@@ -38,38 +38,34 @@ public class CommandSurface extends SurfaceView implements Callback,
 	 * La liste des joysticks
 	 */
 	private List<Point> joysticks = new ArrayList<Point>();
-	
+
 	// TODO choisir le robot
 	// private Robot robot = new FakeRobot();
-//	private Robot robot = new Spykee();
-	
-	
-	
+	// private Robot robot = new Spykee();
+
 	private int width = -1;
-	private int height = - 1;
+	private int height = -1;
 	private List<Drawable> joystickImgs = new ArrayList<Drawable>();
 	private int iconSize = 100;
 	private int iconMargin = 50;
-	
-	private static final float maxMvt = 10f; 
-//	private float mX = 0, mY = 0;
-//	private float dX, dY;
+
+	private static final float maxMvt = 10f;
+	// private float mX = 0, mY = 0;
+	// private float dX, dY;
 	public boolean already = false;
-	
-	
+
 	private Bitmap cameraImg;
-	
+
 	public CommandSurface(Context context) {
 		super(context);
-		
+
 		SurfaceHolder holder = getHolder();
 		holder.setKeepScreenOn(true);
 		holder.addCallback(this);
-		
+
 		this.setOnTouchListener(this);
 	}
 
-	
 	private Pointer getPointer(float x, float y) {
 		return getPoint(pointers, x, y);
 	}
@@ -87,7 +83,7 @@ public class CommandSurface extends SurfaceView implements Callback,
 		Log.i("surface", p + "");
 		return p;
 	}
-	
+
 	public void redraw(Bitmap cameraImg) {
 		Canvas canvas = null;
 		this.cameraImg = cameraImg;
@@ -101,21 +97,24 @@ public class CommandSurface extends SurfaceView implements Callback,
 		}
 	}
 
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-//		this.width = width;
-//		this.height = height;
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
+		// this.width = width;
+		// this.height = height;
 
 		if (joysticks.size() == 0) {
 			for (int i = 0; i < nbJoystick; ++i) {
 				joysticks.add(new Point());
 			}
-			joystickImgs.add(getContext().getResources().getDrawable(R.drawable.orange));
-			joystickImgs.add(getContext().getResources().getDrawable(R.drawable.orange2));
+			joystickImgs.add(getContext().getResources().getDrawable(
+					R.drawable.orange));
+			joystickImgs.add(getContext().getResources().getDrawable(
+					R.drawable.orange2));
 		}
-		int stepX = width - iconMargin*2;
+		int stepX = width - iconMargin * 2;
 		for (int i = 0; i < nbJoystick; ++i) {
-			joysticks.get(i).x = iconMargin + stepX*i;
-			joysticks.get(i).y = height - iconMargin; 
+			joysticks.get(i).x = iconMargin + stepX * i;
+			joysticks.get(i).y = height - iconMargin;
 		}
 	}
 
@@ -124,9 +123,9 @@ public class CommandSurface extends SurfaceView implements Callback,
 	}
 
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		
+
 	}
-	
+
 	@Override
 	protected void onDraw(Canvas canvas) {
 		if (canvas != null) {
@@ -136,32 +135,34 @@ public class CommandSurface extends SurfaceView implements Callback,
 				height = canvas.getHeight();
 
 			if (cameraImg != null) {
-				canvas.drawBitmap(cameraImg, 
-						(width - cameraImg.getWidth()) / 2, 
+				canvas.drawBitmap(cameraImg,
+						(width - cameraImg.getWidth()) / 2,
 						((height - cameraImg.getHeight()) / 2)
-						- (cameraImg.getHeight() / 2), null);
+								- (cameraImg.getHeight() / 2), null);
 			}
-			
+
 			for (int i = 0; i < joysticks.size(); ++i) {
 				Point joystick = joysticks.get(i);
-				int left = (int) (joystick.x - iconSize/2);
-				int top = (int) (joystick.y - iconSize/2);
+				int left = (int) (joystick.x - iconSize / 2);
+				int top = (int) (joystick.y - iconSize / 2);
 				for (Pointer p : pointers) {
 					if (p.joystick == i) {
 						left -= p.mX;
 						top -= p.mY;
 					}
 				}
-				
-//				canvas.drawColor(android.R.color.black);
-//				canvas.drawRect(iconMargin-maxMvt, height - maxMvt - iconMargin - iconSize, iconMargin+maxMvt + iconSize, height + maxMvt - iconMargin + iconSize, new Paint());
-				
+
+				// canvas.drawColor(android.R.color.black);
+				// canvas.drawRect(iconMargin-maxMvt, height - maxMvt -
+				// iconMargin - iconSize, iconMargin+maxMvt + iconSize, height +
+				// maxMvt - iconMargin + iconSize, new Paint());
+
 				Drawable img = joystickImgs.get(i);
 				img.invalidateSelf();
 				img.setBounds(left, top, left + iconSize, top + iconSize);
 				img.draw(canvas);
 			}
-			
+
 			already = true;
 
 			// TODO tester
@@ -169,15 +170,14 @@ public class CommandSurface extends SurfaceView implements Callback,
 		}
 	}
 
-
 	private void acquire() {
-		Robot.actuel.acquire(getContext(), new ImageHandler() {
-    		public void handle(Bitmap bitmap) {
-    			redraw(bitmap);
-    		}
-    	});
-    }
-	
+		Robot.actuel.acquire(new ImageHandler() {
+			public void handle(Bitmap bitmap) {
+				redraw(bitmap);
+			}
+		});
+	}
+
 	public void walk() {
 		float trackL = 0f;
 		float trackR = 0f;
@@ -187,7 +187,7 @@ public class CommandSurface extends SurfaceView implements Callback,
 			if (pointer.joystick == 1)
 				trackR = pointer.mY;
 		}
-		Robot.actuel.go(getContext(), (int) (trackL * 100 / maxMvt),
+		Robot.actuel.go((int) (trackL * 100 / maxMvt),
 				(int) (trackR * 100 / maxMvt));
 	}
 

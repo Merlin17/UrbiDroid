@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-		Robot.actuel = new FakeRobot();
+		Robot.actuel = new FakeRobot(this);
 
 		// surface = new CommandSurface(this);
 		// setContentView(surface);
@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
 		layout.addView(new Joystick(this), size, size);
 		layout.addView(new Joystick(this), size, size);
         
-        Robot.actuel.acquire(this, new ImageHandler() {
+        Robot.actuel.acquire(new ImageHandler() {
 			public void handle(Bitmap bitmap) {
 				LinearLayout layout = (LinearLayout) findViewById(R.id.panel);
 				BitmapDrawable drawable = new BitmapDrawable(bitmap);
