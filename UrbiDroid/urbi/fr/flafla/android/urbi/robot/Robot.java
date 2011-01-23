@@ -50,6 +50,8 @@ public abstract class Robot extends UClient {
 	}
 	
 	
-	
+	protected void addTag(String name) {
+		sendScript("var " + name + " = Channel.new(\"" + name + "\")|;");
+	}
 
 }
