@@ -16,6 +16,9 @@ public class Axes {
 		/** Axe max value */
 		public final int maxValue;
 
+		/** Value (editable) */
+		public int value = 0;
+
 		/**
 		 * Construct an axis with min and max values
 		 * @param minValue
