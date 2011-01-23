@@ -9,33 +9,47 @@ import fr.flafla.android.urbi.control.Axes;
 import fr.flafla.android.urbi.control.Camera;
 
 /**
- * Classe abstraite d'accès aux fonctionnalité d'un robot géré par urbi
+ * Abstract class that describe controller and devices of an urbi robot
  * 
  * @author merlin
- *
+ * 
  */
 public abstract class Robot extends UClient {
-
-	public final Axes[] axes;
-
-	public final Camera[] cameras;
-
 	/**
-	 * Le robot géré par le système (un seul à la fois)
+	 * One only robot is managed
 	 */
 	public static Robot actuel;
 
-	protected Thread thread;
-	
-	protected boolean stop = false;
-	
-	protected Robot(String ip, int port, Axes[] axes, Camera... cameras) {
-		this.axes = axes;
-		this.cameras = cameras;
+	/** List of robot's axes */
+	protected Axes[] axes;
+
+	/** List of robot's cameras */
+	protected Camera[] cameras;
+
+	protected Robot(String ip, int port) {
+		super(ip, port);
 	}
 
-	public abstract void go(int trackL, int trackR);
+	/**
+	 * Method invoked to apply axes modification
+	 */
+	public abstract void move();
+
+	/**
+	 * @return list of robot's axes
+	 */
+	public Axes[] getAxes() {
+		return axes;
+	}
+
+	/**
+	 * @return list of robot's cameras
+	 */
+	public Camera[] getCameras() {
+		return cameras;
+	}
 	
 	
 	
+
 }
