@@ -5,7 +5,6 @@ package fr.flafla.android.urbi.robot;
 
 
 import fr.flafla.android.urbi.UClient;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -33,12 +32,12 @@ public abstract class Robot extends UClient {
 	protected Robot() {
 	}
 
-	public abstract void go(Context context, int trackL, int trackR);
+	public abstract void go(int trackL, int trackR);
 	
 	
 	protected abstract void initCamera();
 	
-	public void acquire(final Context context, final ImageHandler handler) {
+	public void acquire(final ImageHandler handler) {
 		initCamera();
 		if (thread == null) {
 			thread = new AsyncTask<Void, Bitmap, Boolean>() {
@@ -55,7 +54,7 @@ public abstract class Robot extends UClient {
 						} catch (InterruptedException e) {
 							Log.e(getClass().getSimpleName(), "Pb de thread", e);
 						}
-						publishProgress(getImage(context));
+						publishProgress(getImage());
 					} while (!stop);
 
 					return true;
@@ -72,9 +71,9 @@ public abstract class Robot extends UClient {
 		thread.execute();
 	}
 	
-	public void stopAcquire(Context context) {
+	public void stopAcquire() {
 		stop = true;
 	}
 	
-	protected abstract Bitmap getImage(final Context context);
+	protected abstract Bitmap getImage();
 }

@@ -23,12 +23,14 @@ import fr.flafla.android.urbi.R;
 public class FakeRobot extends Robot {
 
 	private Toast toast;
+	private final Context context;
 
-	public FakeRobot() {
+	public FakeRobot(Context context) {
+		this.context = context;
 	}
 	
 	@Override
-	public void go(Context context, int trackL, int trackR) {
+	public void go(int trackL, int trackR) {
 		if (toast == null)
 			toast = Toast.makeText(context, "go(" + trackL + ", " + trackR
 					+ ")", Toast.LENGTH_SHORT);
@@ -38,7 +40,7 @@ public class FakeRobot extends Robot {
 	}
 
 	@Override
-	protected Bitmap getImage(Context context) {
+	protected Bitmap getImage() {
 		InputStream stream = context.getResources().openRawResource(R.raw.test);
 		try {
 			byte[] buffer = new byte[320*240*3];

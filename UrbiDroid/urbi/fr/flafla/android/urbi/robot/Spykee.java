@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
@@ -92,7 +91,7 @@ public class Spykee extends Robot {
 	 * Lecture d'une image par envoi de la commande "camera.val;"
 	 */
 	@Override
-	protected Bitmap getImage(Context context) {
+	protected Bitmap getImage() {
 		try {
 			Log.i("Robot", "ouverture de la connection");
 			InputStream stream = cameraSocket.getInputStream();
@@ -116,7 +115,8 @@ public class Spykee extends Robot {
 	/**
 	 * Envoi les valeurs sur chaque chenille.
 	 */
-	public void go(Context context, int trackL, int trackR) {
+	@Override
+	public void go(int trackL, int trackR) {
 		sendScript("trackL.val="+trackL+"&trackR.val="+trackR+";");
 	}
 }
