@@ -4,11 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 import fr.flafla.android.urbi.control.Axes;
 import fr.flafla.android.urbi.control.Axes.Axis;
+import fr.flafla.android.urbi.control.Camera;
 
 /**
  * Classe de gestion du robot Spykee avec urbi.
@@ -18,8 +17,30 @@ import fr.flafla.android.urbi.control.Axes.Axis;
  */
 public class Spykee extends Robot {
 
-	private static final byte[] detectString = "jpeg 320 240".getBytes();
-	
+	protected class SpykeeCamera extends Camera {
+		private boolean init = false;
+
+		@Override
+		public void start() {
+			if (!init) {
+				sendScript("camera.format = 1;");
+				sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() {camera.val});");
+				sendScript("var uimg = Channel.new(\"uimg\")|;");
+			}
+		}
+
+		@Override
+		public void stop() {
+
+		}
+
+		@Override
+		protected InputStream getImage() {
+			return null;
+		}
+		
+	}
+
 	private Socket cameraSocket;
 
 	/** Buffer d'image */
@@ -30,44 +51,16 @@ public class Spykee extends Robot {
 	
 	
 	public Spykee(String ip, int port) {
-		super(ip, port, new Axes[] {
+		super(ip, port);
+		this.axes = new Axes[] {
 				new Axes(null, new Axis(-100, 100)), new Axes(null, new Axis(-100, 100))
-		});
+		};
+		this.cameras = new Camera[] {
+			new SpykeeCamera()
+		};
 		ensureSocket();
 	}
 	
-
-	/**
-	 * Décodage d'une image provenant du socket
-	 * 
-	 * @param buffer
-	 * @param nb
-	 * @return l'image décodé
-	 */
-	public static Bitmap decodeBitmap(byte[] buffer, int nb) {
-		int offset;
-		// Detect jpeg begin :
-		// jpeg 320 240
-		
-		for (offset = 0; offset < nb; ++offset) {
-			boolean ok = true;
-			for (int i = 0; i < detectString.length; ++i)
-				if (detectString[i] != buffer[offset+i]) {
-					ok = false;
-					break;
-				}
-			if (ok)
-				break;
-		}
-		
-		offset += detectString.length+1;
-		
-		// bouh bouh bouh...
-		
-		Bitmap bitmap = BitmapFactory.decodeByteArray(buffer, offset, nb);
-		
-		return bitmap;
-	}
 	
 	/**
 	 * Initialisation de la camera : ajout du format et notification dans
@@ -91,35 +84,12 @@ public class Spykee extends Robot {
 	}
 	
 	/**
-	 * Lecture d'une image par envoi de la commande "camera.val;"
-	 */
-	@Override
-	protected Bitmap getImage() {
-		try {
-			Log.i("Robot", "ouverture de la connection");
-			InputStream stream = cameraSocket.getInputStream();
-			
-			// Clear stream
-			int nb;
-			cameraSocket.getOutputStream().write(("camera.val;\n").getBytes());
-			
-			// Lecture de l'image
-			nb = stream.read(buffer);
-			Bitmap bitmap = decodeBitmap(buffer, nb);
-			Log.i("Robot", "nb : "+(bitmap==null?0:bitmap.getRowBytes()));
-			
-			return bitmap;
-		} catch (IOException e) {
-			Log.e(getClass().getSimpleName(), "Erreur d'accès au robot", e);
-			throw new RobotException("Erreur d'accès au robot", e);
-		}
-	}
-	
-	/**
 	 * Envoi les valeurs sur chaque chenille.
 	 */
 	@Override
-	public void go(int trackL, int trackR) {
+	public void move() {
+		int trackL = axes[0].y.value;
+		int trackR = axes[1].y.value;
 		sendScript("trackL.val="+trackL+"&trackR.val="+trackR+";");
 	}
 }
