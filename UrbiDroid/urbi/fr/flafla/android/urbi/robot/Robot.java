@@ -5,7 +5,6 @@ package fr.flafla.android.urbi.robot;
 
 
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.util.Log;
 import fr.flafla.android.urbi.UClient;
 import fr.flafla.android.urbi.control.Axes;
@@ -28,7 +27,7 @@ public abstract class Robot extends UClient {
 	 */
 	public static Robot actuel;
 
-	protected AsyncTask<Void, Bitmap, Boolean> thread;
+	protected Thread thread;
 	
 	protected boolean stop = false;
 	
@@ -44,35 +43,27 @@ public abstract class Robot extends UClient {
 	public void acquire(final ImageHandler handler) {
 		initCamera();
 		if (thread == null) {
-			thread = new AsyncTask<Void, Bitmap, Boolean>() {
-				@Override
-				protected Boolean doInBackground(Void... params) {
+			thread = new Thread() {
+				public void run() {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
-						Log.e(getClass().getSimpleName(), "Pb de thread", e);
+						Log.e(getClass().getSimpleName(), "Thread error", e);
 					}
-					do {
+					while (!stop) {
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException e) {
-							Log.e(getClass().getSimpleName(), "Pb de thread", e);
+							Log.e(getClass().getSimpleName(), "Thread error", e);
 						}
-						publishProgress(getImage());
-					} while (!stop);
-
-					return true;
-				}
-
-				@Override
-				protected void onProgressUpdate(Bitmap... values) {
-					handler.handle(values[0]);
+						handler.handle(getImage());
+					}
 				}
 			};
 
 		}
 		
-		thread.execute();
+		thread.start();
 	}
 	
 	public void stopAcquire() {
