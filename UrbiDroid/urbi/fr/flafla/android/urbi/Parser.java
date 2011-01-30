@@ -57,26 +57,26 @@ public class Parser {
 				msg = matcher.group(2);
 
 				// Read binary
-				byte[] bytes = new byte[length];
-				int toRead = length;
-				int len = buffer.limit() - buffer.position();
-				int pos = 0;
-				buffer.get(bytes, pos, len);
-				toRead -= len;
 
+				// 1. Read bytes in buffer
+				byte[] bytes = new byte[length + 1];
+				int len = buffer.limit() - buffer.position();
+				buffer.get(bytes, 0, len);
+
+				// 2. Read socket to get the end of the binary stream
+				int pos = len;
+				int toRead = length - len;
 				while (toRead > 0) {
 					buffer.clear();
 					int read;
 					while ((read = channel.read(buffer)) == 0)
 						;
-					System.out.println("read : " + buffer.limit() + ", " + read);
 					buffer.flip();
-
 					buffer.get(bytes, pos, read);
 					pos += read;
 					toRead -= read;
 				}
-				return new UBinary(tag, time, msg, bytes);
+				return new UBinary(tag, time, msg, length, bytes);
 			} else {
 				return new UMessage(tag, time, msg);
 			}
