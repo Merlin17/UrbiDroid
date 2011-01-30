@@ -41,10 +41,17 @@ public abstract class Camera {
 			handlers.remove(handler);
 	}
 
+	protected void notifyHandlers(InputStream bitmap) {
+		for (ImageHandler handler : handlers) {
+			handler.handle(bitmap);
+		}
+	}
+
 	/**
 	 * Method to start acquisition
+	 * @param freq Frequence in ms
 	 */
-	public abstract void start();
+	public abstract void start(int freq);
 
 	/**
 	 * Method to stop acquisition

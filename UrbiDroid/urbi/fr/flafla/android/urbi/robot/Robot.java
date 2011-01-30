@@ -50,6 +50,10 @@ public abstract class Robot extends UClient {
 	}
 	
 	
+	/**
+	 * Add an urbi tag
+	 * @param name
+	 */
 	protected void addTag(String name) {
 		sendScript("var " + name + " = Channel.new(\"" + name + "\")|;");
 	}
