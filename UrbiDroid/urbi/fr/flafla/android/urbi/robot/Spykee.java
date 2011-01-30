@@ -1,10 +1,11 @@
 package fr.flafla.android.urbi.robot;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.Socket;
 
-import android.util.Log;
+import fr.flafla.android.urbi.UBinary;
+import fr.flafla.android.urbi.UCallback;
+import fr.flafla.android.urbi.UMessage;
 import fr.flafla.android.urbi.control.Axes;
 import fr.flafla.android.urbi.control.Axes.Axis;
 import fr.flafla.android.urbi.control.Camera;
@@ -18,14 +19,25 @@ import fr.flafla.android.urbi.control.Camera;
 public class Spykee extends Robot {
 
 	protected class SpykeeCamera extends Camera {
+		private static final String UIMG = "uimg";
 		private boolean init = false;
 
 		@Override
-		public void start() {
+		public void start(int freq) {
 			if (!init) {
-				sendScript("camera.format = 1;");
-				sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() {camera.val});");
-				sendScript("var uimg = Channel.new(\"uimg\")|;");
+				addCallback(UIMG, new UCallback() {
+					@Override
+					public boolean handle(UMessage msg) {
+						System.out.println("changement de la valeur uimg : " + msg.tag + ", " + msg.time + ", " + new String(msg.msg));
+						notifyHandlers(new ByteArrayInputStream(((UBinary) msg).array));
+						return true;
+					}
+				});
+
+				addTag(UIMG);
+				sendScript("camera.format = 1|;");
+				sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() {camera.val})|;");
+				sendScript("every(" + (double) freq / 1000. + "s) {" + UIMG + "<<camera.val},");
 			}
 		}
 
@@ -41,15 +53,11 @@ public class Spykee extends Robot {
 		
 	}
 
-	private Socket cameraSocket;
-
-	/** Buffer d'image */
-	byte[] buffer = new byte[320*240*3];
-	
-	/** Indique si la caméra est déjà initialisée */
-	private boolean init = false;
-	
-	
+	/**
+	 * Initialize the spykee with 2 axes with one axis
+	 * @param ip
+	 * @param port
+	 */
 	public Spykee(String ip, int port) {
 		super(ip, port);
 		this.axes = new Axes[] {
@@ -60,31 +68,9 @@ public class Spykee extends Robot {
 		};
 		ensureSocket();
 	}
-	
-	
+
 	/**
-	 * Initialisation de la camera : ajout du format et notification dans
-	 * camera.val de toutes les nouvelles images.
-	 */
-	protected void initCamera() {
-		if (!init) {
-			sendScript("camera.format = 1;"); 
-			sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() { camera.val});");
-			
-			InputStream stream;
-			try {
-				cameraSocket = new Socket(IP, PORT);
-				stream = cameraSocket.getInputStream();
-				stream.read(buffer);
-			} catch (IOException e) {
-				Log.e(getClass().getSimpleName(), "Erreur d'accès au robot", e);
-			}
-			init = true;
-		}
-	}
-	
-	/**
-	 * Envoi les valeurs sur chaque chenille.
+	 * Send axes values to the spykee
 	 */
 	@Override
 	public void move() {

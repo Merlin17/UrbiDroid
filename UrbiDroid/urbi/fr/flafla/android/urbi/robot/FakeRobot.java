@@ -24,7 +24,7 @@ public class FakeRobot extends Robot {
 	protected class FakeCamera extends Camera {
 
 		@Override
-		public void start() {
+		public void start(int freq) {
 		}
 
 		@Override
