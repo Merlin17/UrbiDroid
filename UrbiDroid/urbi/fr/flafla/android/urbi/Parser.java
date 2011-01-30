@@ -11,16 +11,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * This class is a parser to read message from urbi
+ * 
  * @author merlin
- *
+ * 
  */
-public class Parser {
+public final class Parser {
 	public static final Pattern detectBin = Pattern.compile("BIN ([0-9]+) (.*)");
 
 	public static UMessage parse(ByteBuffer buffer, SocketChannel channel) {
 		// TODO manage BufferUnderflowException
-		System.out.println("parse");
-
 		try {
 			int begin;
 
@@ -28,32 +28,33 @@ public class Parser {
 			while (buffer.get() != '[')
 				;
 			begin = buffer.arrayOffset() + buffer.position();
-			// TODO check char is ascii number
+
+			// Read time
 			char c;
 			while ((c = (char) buffer.get()) != ':')
+				// Check char is ascii number
 				if (c < '0' || c > '9')
 					return null;
 				;
 			String time = getToken(buffer, begin);
 
+			// Read tag
 			begin = buffer.arrayOffset() + buffer.position();
 			while (buffer.get() != ']')
 				;
 			String tag = getToken(buffer, begin);
 
+			// Read Message
 			begin = buffer.arrayOffset() + buffer.position();
 			while (buffer.position() < buffer.limit() && buffer.get() != '\n')
 				;
 			String msg = getToken(buffer, begin);
-
-			System.out.println("time : " + time + ", tag : " + tag + ", msg : " + msg);
 
 			// Detect if message is binary or not
 			Matcher matcher = detectBin.matcher(msg);
 			if (matcher.find()) {
 				// Read header
 				Integer length = new Integer(matcher.group(1));
-				System.out.println("binary : " + length + ", " + buffer);
 				msg = matcher.group(2);
 
 				// Read binary
