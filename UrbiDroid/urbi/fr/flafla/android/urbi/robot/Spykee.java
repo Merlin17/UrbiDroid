@@ -28,7 +28,6 @@ public class Spykee extends Robot {
 				addCallback(UIMG, new UCallback() {
 					@Override
 					public boolean handle(UMessage msg) {
-						System.out.println("changement de la valeur uimg : " + msg.tag + ", " + msg.time + ", " + new String(msg.msg));
 						notifyHandlers(new ByteArrayInputStream(((UBinary) msg).array));
 						return true;
 					}
