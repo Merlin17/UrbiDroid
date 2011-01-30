@@ -15,10 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import android.util.Log;
 import fr.flafla.android.urbi.robot.RobotException;
 
 /**
@@ -83,15 +80,14 @@ public class UClient {
 			if (!init) {
 				// Ouverture du socket
 				channel = SocketChannel.open();
-				channel.configureBlocking(false);
 				channel.connect(new InetSocketAddress(InetAddress.getByName(ip), port));
 				init = channel.finishConnect();
+				channel.configureBlocking(false);
 			}
 		} catch (UnknownHostException e) {
-			Log.e("Robot", "Impossible de trouver le robot", e);
+			throw new RobotException("Unknown host", e);
 		} catch (IOException e) {
-			e.printStackTrace();
-			Log.e("Robot", "Erreur d'accès au robot", e);
+			throw new RobotException("IO Exception in contacting robot", e);
 		}
 	}
 
@@ -100,7 +96,7 @@ public class UClient {
 			ensureConnection();
 			channel.write(ByteCharSequence.encoder.encode(CharBuffer.wrap(script + "\n")));
 		} catch (IOException e) {
-			Log.e(getClass().getSimpleName(), "Erreur d'accès au robot", e);
+			throw new RobotException("IO Exception in perfoming script", e);
 		}
 	}
 
@@ -110,8 +106,21 @@ public class UClient {
 	 */
 	protected void ensureConnection() throws IOException {
 		ensureSocket();
-		if (channel == null || !channel.isConnected())
+		if (channel == null || !channel.isConnected()) {
 			throw new RobotException("No connection");
+		}
+		// if (channel != null) {
+		// while (channel.isConnectionPending())
+		// try {
+		// Thread.sleep(100);
+		// } catch (InterruptedException e) {
+		// throw new RobotException("No connection", e);
+		// }
+		// if (!channel.isConnected())
+		// throw new RobotException("No connection");
+		// } else {
+		// throw new RobotException("No connection");
+		// }
 	}
 
 	/**
@@ -174,24 +183,65 @@ public class UClient {
 	 */
 	protected void read() {
 		try {
-			ByteBuffer buffer = ByteBuffer.allocate(1024);
+			ByteBuffer buffer = ByteBuffer.allocate(1024 * 10);
 			while (true) {
 				// Read the socket
 				buffer.clear();
+				ensureConnection();
 				while (channel.read(buffer) == 0);
 				buffer.flip();
-				CharBuffer charBuffer = decoder.decode(buffer);
 
-				// Create the UMessage
-				Pattern linePattern = Pattern.compile("\\[([0-9]+):([a-zA-Z]+)\\](.+)");
-				Matcher matcher = linePattern.matcher(charBuffer.toString());
-				if (matcher.find()) {
-					int c = 1;
-					String time = matcher.group(c++);
-					String tag = matcher.group(c++);
-					String msg = matcher.group(c++);
-					notifyCallback(new UMessage(tag, time, msg));
+				while (buffer.position() < buffer.limit()) {
+					UMessage msg = Parser.parse(buffer, channel);
+					if (msg != null)
+						notifyCallback(msg);
 				}
+
+				// System.out.println("read : " + new String(buffer.array(), buffer.position(), buffer.limit()));
+				// CharBuffer charBuffer = decoder.decode(buffer);
+
+				// System.out.println("read : " + charBuffer);
+
+				// int i = buffer.position() + buffer.arrayOffset();
+				// byte[] array = buffer.array();
+				// buffer.get()
+				//
+				// // Detect first [
+				// while (array[++i] != '[');
+				
+				
+
+				// String read = new String(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.limit());
+				// Scanner scan = new Scanner(read);
+				// try {
+				// scan.next("\\[");
+				// String time = scan.next("([0-9]+)");
+				// System.out.println("time " + time);
+				// String tag = scan.next(":([a-zA-Z]+)\\]");
+				//
+				// String next = scan.next();
+				// scan.next("(.+)");
+				// if ("BIN".equals(next)) {
+				// scan.next("(.+)");
+				// } else {
+				// String msg = scan.next("(.+)");
+				// notifyCallback(new UMessage(tag, time, msg));
+				// }
+				// } catch (InputMismatchException e) {
+				// // System.out.println("no correct input " + read);
+				// }
+
+				// Simple method
+//				// Create the UMessage
+//				Pattern linePattern = Pattern.compile("\\[([0-9]+):([a-zA-Z]+)\\](.+)");
+//				Matcher matcher = linePattern.matcher(new String(buffer.array(), buffer.position(), buffer.limit()));
+//				while (matcher.find()) {
+//					int c = 1;
+//					String time = matcher.group(c++);
+//					String tag = matcher.group(c++);
+//					String msg = matcher.group(c++);
+//					notifyCallback(new UMessage(tag, time, msg));
+//				}
 			}
 		} catch (IOException e) {
 			throw new UrbiException("Error thrown on read socket", e);
