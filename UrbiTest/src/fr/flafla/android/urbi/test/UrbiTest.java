@@ -67,7 +67,7 @@ public class UrbiTest extends TestCase {
 
 			}
 		});
-		robot.getCameras()[0].start(200);
+		robot.getCameras()[0].start(25);
 		
 
 		// // Just wait images
