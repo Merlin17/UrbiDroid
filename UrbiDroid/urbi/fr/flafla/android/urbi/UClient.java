@@ -109,18 +109,6 @@ public class UClient {
 		if (channel == null || !channel.isConnected()) {
 			throw new RobotException("No connection");
 		}
-		// if (channel != null) {
-		// while (channel.isConnectionPending())
-		// try {
-		// Thread.sleep(100);
-		// } catch (InterruptedException e) {
-		// throw new RobotException("No connection", e);
-		// }
-		// if (!channel.isConnected())
-		// throw new RobotException("No connection");
-		// } else {
-		// throw new RobotException("No connection");
-		// }
 	}
 
 	/**
@@ -183,7 +171,7 @@ public class UClient {
 	 */
 	protected void read() {
 		try {
-			ByteBuffer buffer = ByteBuffer.allocate(1024 * 10);
+			ByteBuffer buffer = ByteBuffer.allocate(1448);
 			while (true) {
 				// Read the socket
 				buffer.clear();
@@ -196,52 +184,6 @@ public class UClient {
 					if (msg != null)
 						notifyCallback(msg);
 				}
-
-				// System.out.println("read : " + new String(buffer.array(), buffer.position(), buffer.limit()));
-				// CharBuffer charBuffer = decoder.decode(buffer);
-
-				// System.out.println("read : " + charBuffer);
-
-				// int i = buffer.position() + buffer.arrayOffset();
-				// byte[] array = buffer.array();
-				// buffer.get()
-				//
-				// // Detect first [
-				// while (array[++i] != '[');
-				
-				
-
-				// String read = new String(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.limit());
-				// Scanner scan = new Scanner(read);
-				// try {
-				// scan.next("\\[");
-				// String time = scan.next("([0-9]+)");
-				// System.out.println("time " + time);
-				// String tag = scan.next(":([a-zA-Z]+)\\]");
-				//
-				// String next = scan.next();
-				// scan.next("(.+)");
-				// if ("BIN".equals(next)) {
-				// scan.next("(.+)");
-				// } else {
-				// String msg = scan.next("(.+)");
-				// notifyCallback(new UMessage(tag, time, msg));
-				// }
-				// } catch (InputMismatchException e) {
-				// // System.out.println("no correct input " + read);
-				// }
-
-				// Simple method
-//				// Create the UMessage
-//				Pattern linePattern = Pattern.compile("\\[([0-9]+):([a-zA-Z]+)\\](.+)");
-//				Matcher matcher = linePattern.matcher(new String(buffer.array(), buffer.position(), buffer.limit()));
-//				while (matcher.find()) {
-//					int c = 1;
-//					String time = matcher.group(c++);
-//					String tag = matcher.group(c++);
-//					String msg = matcher.group(c++);
-//					notifyCallback(new UMessage(tag, time, msg));
-//				}
 			}
 		} catch (IOException e) {
 			throw new UrbiException("Error thrown on read socket", e);
