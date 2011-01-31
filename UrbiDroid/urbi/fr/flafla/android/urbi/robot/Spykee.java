@@ -1,7 +1,6 @@
 package fr.flafla.android.urbi.robot;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 import fr.flafla.android.urbi.UBinary;
 import fr.flafla.android.urbi.UCallback;
@@ -43,11 +42,6 @@ public class Spykee extends Robot {
 		@Override
 		public void stop() {
 
-		}
-
-		@Override
-		protected InputStream getImage() {
-			return null;
 		}
 		
 	}

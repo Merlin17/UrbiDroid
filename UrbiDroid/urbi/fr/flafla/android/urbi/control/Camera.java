@@ -58,9 +58,4 @@ public abstract class Camera {
 	 */
 	public abstract void stop();
 
-	/**
-	 * @return the InputStream that contains image
-	 */
-	protected abstract InputStream getImage();
-
 }

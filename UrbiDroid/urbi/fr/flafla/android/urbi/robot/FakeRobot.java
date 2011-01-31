@@ -25,14 +25,20 @@ public class FakeRobot extends Robot {
 
 		@Override
 		public void start(int freq) {
+			Thread thread = new Thread() {
+				@Override
+				public void run() {
+					notifyHandlers(getImage());
+				}
+			};
+			thread.start();
 		}
 
 		@Override
 		public void stop() {
 		}
 
-		@Override
-		protected InputStream getImage() {
+		private InputStream getImage() {
 			return context.getResources().openRawResource(R.raw.test);
 		}
 
