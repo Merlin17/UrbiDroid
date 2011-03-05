@@ -24,11 +24,18 @@ public class FakeRobot extends Robot {
 	protected class FakeCamera extends Camera {
 
 		@Override
-		public void start(int freq) {
+		public void start(final int freq) {
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
-					notifyHandlers(getImage());
+					while (true) {
+						notifyHandlers(getImage());
+						try {
+							Thread.sleep(freq);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
 				}
 			};
 			thread.start();
