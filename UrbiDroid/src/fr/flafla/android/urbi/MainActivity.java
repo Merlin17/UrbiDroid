@@ -1,79 +1,77 @@
 package fr.flafla.android.urbi;
 
+import java.io.InputStream;
+
 import android.app.Activity;
-import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import fr.flafla.android.urbi.control.Camera;
+import fr.flafla.android.urbi.control.Camera.ImageHandler;
 import fr.flafla.android.urbi.control.Joystick;
-import fr.flafla.android.urbi.robot.FakeRobot;
 import fr.flafla.android.urbi.robot.Robot;
-import fr.flafla.android.urbi.robot.Robot.ImageHandler;
+import fr.flafla.android.urbi.robot.Spykee;
 
 public class MainActivity extends Activity {
-//	private class RobotEvent implements OnClickListener {
-//		public final int trackL;
-//		public final int trackR;
-//		public RobotEvent(int trackL, int trackR) {
-//			super();
-//			this.trackL = trackL;
-//			this.trackR = trackR;
-//		}
-//		public void onClick(View v) {
-//			robot.go(MainActivity.this, trackL, trackR);
-//		}
-//	}
 	
+	Handler imageHandler = new Handler();
 
-	// private Robot robot;
-	//	
-	// private Bitmap bitmap;
-	
+	Runnable imageDisplayer = new Runnable() {
+		@Override
+		public void run() {
+			// display the image on background
+			LinearLayout layout = (LinearLayout) findViewById(R.id.panel);
+			BitmapDrawable drawable = new BitmapDrawable(bitmap);
+			layout.setBackgroundDrawable(drawable);
+			bitmap = null;
+		}
+	};
 
-	// private CommandSurface surface;
-	
+	protected InputStream bitmap;
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-		Robot.actuel = new FakeRobot("spykee", UClient.PORT, this);
+		// Robot.actuel = new FakeRobot("spykee", UClient.PORT, this);
+		Robot.actuel = new Spykee("192.168.1.14", UClient.PORT);
 
-		// surface = new CommandSurface(this);
-		// setContentView(surface);
-
+		// Hide title and notification bar
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+		// Set the main view
 		setContentView(R.layout.main);
 
 		LinearLayout layout = (LinearLayout) findViewById(R.id.panel);
-		int size = 220;
-		layout.addView(new Joystick(this), size, size);
-		layout.addView(new Joystick(this), size, size);
+
+		Joystick joystick = new Joystick(this);
+		layout.addView(joystick);
+		joystick.setAxes(Robot.actuel.getAxes());
         
-        Robot.actuel.acquire(new ImageHandler() {
-			public void handle(Bitmap bitmap) {
-				LinearLayout layout = (LinearLayout) findViewById(R.id.panel);
-				BitmapDrawable drawable = new BitmapDrawable(bitmap);
-				layout.setBackgroundDrawable(drawable);
+		Camera camera = Robot.actuel.getCameras()[0];
+		camera.addHandler(new ImageHandler() {
+			public void handle(InputStream bitmap) {
+				// Post a new image
+				MainActivity.this.bitmap = bitmap;
+				imageHandler.post(imageDisplayer);
 			}
 		});
-        
-     
-        
-        
-//        Button left = (Button) findViewById(R.id.left);
-//        Button right = (Button) findViewById(R.id.right);
-//        Button walk = (Button) findViewById(R.id.walk);
-//        Button stop = (Button) findViewById(R.id.stop);
-//        walk.setOnClickListener(new RobotEvent(50, 50));
-//        stop.setOnClickListener(new RobotEvent(0, 0));
-//        left.setOnClickListener(new RobotEvent(50, 0));
-//        right.setOnClickListener(new RobotEvent(0, 50));
+
+		camera.start(25);
         
         
     }
     
+	@Override
+	protected void onStop() {
+		super.onStop();
+		Robot.actuel.getCameras()[0].stop();
+	}
     
     
 }
