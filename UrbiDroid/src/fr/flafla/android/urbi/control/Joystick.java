@@ -5,113 +5,215 @@ import java.util.List;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import fr.flafla.android.urbi.R;
+import fr.flafla.android.urbi.robot.Robot;
 
 /**
- * Classe de description d'un joystick
+ * This class handles user input in the form of one or more virtual joystick(s).
  * 
- * @author merlin
+ * @author merlin, packadal
  * 
  */
 public class Joystick extends View implements OnTouchListener {
 
-	private static int count = 0;
-	private static List<Joystick> all;
-
-	private Drawable joystickImg;
-	private int iconSize = 100;
-	private int iconMargin = 30;
-	private float maxMvt = 30f;
-	private int size = (int) (iconMargin * 2 + maxMvt * 2 + iconSize);
-
-	private int internalId = ++count;
-
-	private float x, y, mX, mY;
-
-	public Joystick(Context context) {
-		super(context);
-		joystickImg = getContext().getResources().getDrawable(R.drawable.orange);
-		setMinimumWidth(size);
-		setMinimumHeight(size);
-
-		setOnTouchListener(this);
-
-		if (all == null)
-			all = new ArrayList<Joystick>();
-		all.add(this);
-
+	enum Orientation {
+		VERTICAL, HORIZONTAL
 	}
 
-	public boolean onTouch(View v, MotionEvent event) {
-		// Log.i("joystick : " + this, event.toString());
+	private static final int spaceBetweenJoysticks = 300;
+	private static final int widthJoystick = 300;
+	private static final int heightJoystick = 300;
 
-		for (int id = 0; id <= event.getPointerCount(); ++id) {
-			// Vérifie que l'on est dans la zone
-			float xId = event.getX(id);
-			float yId = event.getY(id);
-			if (getLeft() <= (int) xId && (int) xId <= getRight() && getTop() <= (int) yId && (int) yId <= getBottom()) {
-				switch (event.getAction()) {
-				case MotionEvent.ACTION_MOVE:
-					mX = xId - x;
-					mY = y - yId;
-					if (mX > maxMvt)
-						mX = maxMvt;
-					if (mX < -maxMvt)
-						mX = -maxMvt;
-					if (mY > maxMvt)
-						mY = maxMvt;
-					if (mY < -maxMvt)
-						mY = -maxMvt;
+	/**
+	 * @author packadal Base class for a joystick that draws itself.
+	 * 
+	 */
+	public static abstract class JoystickBase {
+		protected float xPosition;
+		protected float yPosition;
+		protected float halfWidth;
+		protected float halfHeight;
 
-					move();
+		public boolean isInUse = false;
 
-					break;
-				case MotionEvent.ACTION_POINTER_2_DOWN:
-				case MotionEvent.ACTION_POINTER_DOWN:
-				case MotionEvent.ACTION_DOWN:
-					// TODO création en fonction de la position sur l'écran et pas seulement du parent
-					x = getLeft() + size / 2;
-					y = getTop() + size / 2;
-					break;
-				case MotionEvent.ACTION_POINTER_2_UP:
-				case MotionEvent.ACTION_POINTER_UP:
-				case MotionEvent.ACTION_UP:
-					mX = 0;
-					mY = 0;
-					move();
-					break;
-				}
+		/** Reference to axes model */
+		private final Axes axes;
+
+		public JoystickBase(Axes axes, float xPosition, float yPosition, float width, float height) {
+			this.axes = axes;
+			this.xPosition = xPosition;
+			this.yPosition = yPosition;
+			halfHeight = height / 2;
+			halfWidth = width / 2;
+		}
+
+		public void setxPosition(float xPosition) {
+			this.xPosition = xPosition;
+		}
+
+		public void setyPosition(float yPosition) {
+			this.yPosition = yPosition;
+		}
+
+		public void onDraw(Canvas canvas) {
+			RectF oval = new RectF(xPosition - halfWidth, yPosition - halfHeight, xPosition + halfWidth, yPosition + halfHeight);
+			Paint paint = new Paint();
+			paint.setStrokeWidth(5);
+			paint.setStyle(Paint.Style.STROKE);
+			paint.setARGB(255, 0, 0, 255);
+			canvas.drawOval(oval, paint);
+		}
+
+		public boolean isIn(float x, float y) {
+			return (x <= xPosition + halfWidth && x >= xPosition - halfWidth) && (y <= yPosition + halfHeight && y >= yPosition - halfHeight);
+		}
+
+		public void move(float x, float y) {
+			if (axes.x != null) {
+				float relX = x - xPosition;
+				if (relX > 0)
+					axes.x.value = (int) (relX * axes.x.maxValue / halfWidth);
+				else if (relX < 0)
+					axes.x.value = (int) (relX * axes.x.minValue / -halfWidth);
+				else
+					axes.x.value = 0;
+			}
+			if (axes.y != null) {
+				float relY = yPosition - y;
+				if (relY > 0)
+					axes.y.value = (int) (relY * axes.y.maxValue / halfHeight);
+				else if (relY < 0)
+					axes.y.value = (int) (relY * axes.y.minValue / -halfHeight);
+				else
+					axes.y.value = 0;
 			}
 		}
 
-		// Notifie tous les joysticks des changements
-		for (Joystick joystick : all)
-			if (joystick != v && joystick != this)
-				joystick.onTouch(this, event);
+		public void released() {
+			if (axes.x != null)
+				axes.x.value = 0;
+			if (axes.y != null)
+				axes.y.value = 0;
+		}
+	}
+
+	/**
+	 * Implementation of JoystickBase for a 1-axis Joystick.
+	 */
+	public static final class AxisJoystick extends JoystickBase {
+		public AxisJoystick(Axes axes, float xPosition, float yPosition, Orientation o) {
+			super(axes, xPosition, yPosition, o == Orientation.HORIZONTAL ? heightJoystick / 2 : widthJoystick, o == Orientation.VERTICAL ? widthJoystick / 2 : heightJoystick);
+		}
+	}
+
+	/**
+	 * Implementation of JoystickBase for a 1-axis Joystick.
+	 */
+	public static final class Axis2Joystick extends JoystickBase {
+		public Axis2Joystick(Axes axes, float xPosition, float yPosition) {
+			super(axes, xPosition, yPosition, widthJoystick, heightJoystick);
+		}
+	}
+
+
+	private final List<JoystickBase> joysticks = new ArrayList<JoystickBase>();
+
+	public Joystick(Context context) {
+		super(context);
+		setOnTouchListener(this);
+	}
+
+	public void setAxes(Axes[] axes) {
+		int n = 0;
+		for (Axes a : axes) {
+			createJoystick(a, n++);
+		}
+	}
+
+	private void createJoystick(Axes a, int n) {
+		int xPosition = widthJoystick * n + 100;
+		int yPosition = heightJoystick / 2 + 100;
+
+		// We will suppose they not have more than 2 joystick
+		if (a.x != null && a.y != null) {
+			// Use a 2-axis joystick
+			joysticks.add(new Axis2Joystick(a, xPosition, yPosition));
+			Log.d("joystick", "2 axis joystick created");
+		} else {
+			// Use a 1-axis joystick
+			joysticks.add(new AxisJoystick(a, xPosition, yPosition, a.x == null ? Orientation.HORIZONTAL : Orientation.VERTICAL));
+			Log.d("joystick", "1 axis joystick created");
+		}
+	}
+
+	@Override
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+
+		int n = 0;
+		for (JoystickBase joystick : joysticks) {
+			int xPosition = (w - 200) * n + 100;
+			int yPosition = heightJoystick / 2 + 100;
+
+			joystick.setxPosition(xPosition);
+			joystick.setyPosition(yPosition);
+
+			n++;
+		}
+	}
+
+	public boolean onTouch(View v, MotionEvent event) {
+		switch (event.getAction()) {
+		case MotionEvent.ACTION_POINTER_2_UP:
+		case MotionEvent.ACTION_POINTER_UP:
+		case MotionEvent.ACTION_UP:
+		case MotionEvent.ACTION_CANCEL:
+		case MotionEvent.ACTION_MOVE:
+
+			for (JoystickBase j : joysticks) {
+				boolean oneAtLeast = false;
+				for (int id = 0; id <= event.getPointerCount(); ++id) {
+					// Check we are in the zone
+					float xId = event.getX(id);
+					float yId = event.getY(id);
+
+					if (j.isIn(xId, yId)) {
+						oneAtLeast = true;
+						j.isInUse = true;
+
+						j.move(xId, yId);
+						break;
+					}
+
+				}
+				if (!oneAtLeast && j.isInUse) {
+					j.released();
+				}
+			}
+
+			move();
+
+			break;
+		}
 
 		return true;
 	}
 
 	private void move() {
-		invalidate();
-		int left = (int) (iconMargin + maxMvt - mX);
-		int top = (int) (iconMargin + maxMvt - mY);
-		joystickImg.setBounds(left, top, left + iconSize, top + iconSize);
-		Log.i(getClass().getSimpleName(), internalId + " move to [" + mX + ", " + mY + "]");
+		Robot.actuel.move();
 	}
 
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		int left = (int) (iconMargin + maxMvt - mX);
-		int top = (int) (iconMargin + maxMvt - mY);
-		joystickImg.setBounds(left, top, left + iconSize, top + iconSize);
-		joystickImg.draw(canvas);
+		for (JoystickBase joystick : joysticks) {
+			joystick.onDraw(canvas);
+		}
 	}
 
 }
