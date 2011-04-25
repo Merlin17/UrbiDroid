@@ -3,6 +3,8 @@
  */
 package fr.flafla.android.urbi;
 
+import static java.lang.Math.min;
+
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -20,18 +22,17 @@ public final class Parser {
 	public static final Pattern detectBin = Pattern.compile("BIN ([0-9]+) (.*)");
 
 	public static UMessage parse(ByteBuffer buffer, SocketChannel channel) {
-		// TODO manage BufferUnderflowException
 		try {
 			int begin;
 
 			// [0-9+:a-Z+] (BIN | msg)
-			while (buffer.get() != '[')
+			while (getFromBuffer(buffer, channel) != '[')
 				;
 			begin = buffer.arrayOffset() + buffer.position();
 
 			// Read time
 			char c;
-			while ((c = (char) buffer.get()) != ':')
+			while ((c = (char) getFromBuffer(buffer, channel)) != ':')
 				// Check char is ascii number
 				if (c < '0' || c > '9')
 					return null;
@@ -40,13 +41,13 @@ public final class Parser {
 
 			// Read tag
 			begin = buffer.arrayOffset() + buffer.position();
-			while (buffer.get() != ']')
+			while (getFromBuffer(buffer, channel) != ']')
 				;
 			String tag = getToken(buffer, begin);
 
 			// Read Message
 			begin = buffer.arrayOffset() + buffer.position();
-			while (buffer.position() < buffer.limit() && buffer.get() != '\n')
+			while (buffer.position() < buffer.limit() && getFromBuffer(buffer, channel) != '\n')
 				;
 			String msg = getToken(buffer, begin);
 
@@ -73,7 +74,7 @@ public final class Parser {
 					while ((read = channel.read(buffer)) == 0)
 						;
 					buffer.flip();
-					buffer.get(bytes, pos, read);
+					buffer.get(bytes, pos, min(toRead, read));
 					pos += read;
 					toRead -= read;
 				}
@@ -88,6 +89,23 @@ public final class Parser {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * This method get a byte from the buffer. Read channel if overflow
+	 * @param buffer
+	 * @param channel
+	 * @return the byte
+	 * @throws IOException
+	 */
+	private static byte getFromBuffer(ByteBuffer buffer, SocketChannel channel) throws IOException {
+		if (buffer.limit() == buffer.position()) {
+			buffer.clear();
+			while (channel.read(buffer) == 0)
+				;
+			buffer.flip();
+		}
+		return buffer.get();
 	}
 
 	private static String getToken(ByteBuffer buffer, int begin) {
