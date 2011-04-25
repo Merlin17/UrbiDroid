@@ -22,13 +22,15 @@ import fr.flafla.android.urbi.control.Camera;
 public class FakeRobot extends Robot {
 
 	protected class FakeCamera extends Camera {
+		protected boolean interrupt = false;
 
 		@Override
 		public void start(final int freq) {
+			interrupt = false;
 			Thread thread = new Thread() {
 				@Override
 				public void run() {
-					while (true) {
+					while (!interrupt) {
 						notifyHandlers(getImage());
 						try {
 							Thread.sleep(freq);
@@ -43,10 +45,11 @@ public class FakeRobot extends Robot {
 
 		@Override
 		public void stop() {
+			interrupt = true;
 		}
 
 		private InputStream getImage() {
-			return context.getResources().openRawResource(R.raw.test);
+			return context.getResources().openRawResource(R.raw.spykee);
 		}
 
 	}
