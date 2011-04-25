@@ -27,7 +27,8 @@ public class Spykee extends Robot {
 				addCallback(UIMG, new UCallback() {
 					@Override
 					public boolean handle(UMessage msg) {
-						notifyHandlers(new ByteArrayInputStream(((UBinary) msg).array));
+						if (msg instanceof UBinary)
+							notifyHandlers(new ByteArrayInputStream(((UBinary) msg).array));
 						return true;
 					}
 				});
@@ -69,6 +70,6 @@ public class Spykee extends Robot {
 	public void move() {
 		int trackL = axes[0].y.value;
 		int trackR = axes[1].y.value;
-		sendScript("trackL.val="+trackL+"&trackR.val="+trackR+";");
+		sendScript("trackL.val=" + trackL + "|&trackR.val=" + trackR + "|;");
 	}
 }
