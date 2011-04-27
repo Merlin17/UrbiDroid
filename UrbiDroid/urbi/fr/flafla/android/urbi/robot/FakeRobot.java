@@ -33,7 +33,7 @@ public class FakeRobot extends Robot {
 					while (!interrupt) {
 						notifyHandlers(getImage());
 						try {
-							Thread.sleep(freq);
+							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
@@ -57,8 +57,7 @@ public class FakeRobot extends Robot {
 	private Toast toast;
 	private final Context context;
 
-	public FakeRobot(String ip, int port, Context context) {
-		super(ip, port);
+	public FakeRobot(Context context) {
 		this.axes = new Axes[] {
 				new Axes(null, new Axis(-100, 100)), new Axes(null, new Axis(-100, 100))
 		};
