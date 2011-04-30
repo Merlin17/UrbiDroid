@@ -70,19 +70,27 @@ public class UrbiTest extends TestCase {
 		robot.getCameras()[0].start(25);
 		
 
-		// // Just wait images
-		// Thread.sleep(5000);
 
-		robot.getAxes()[0].y.value = 10;
-		robot.getAxes()[1].y.value = 10;
-		robot.move();
+
+
+
+		// Move
+		try {
+			for (int i = 0; i < 10; ++i) {
+				robot.getAxes()[0].y.value = 10 * (i % 2 * 2 - 1);
+				robot.getAxes()[1].y.value = 10 * (i % 2 * 2 - 1);
+				robot.move();
+				Thread.sleep(250);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		Thread.sleep(1000);
 
-		robot.getAxes()[0].y.value = 0;
-		robot.getAxes()[1].y.value = 0;
-		robot.move();
+		robot.stop();
 
+		robot.getCameras()[0].stop();
 	}
 
 	public static void main(String[] args) throws Exception {
