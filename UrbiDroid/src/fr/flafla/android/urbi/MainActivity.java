@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		camera.start(100);
+		camera.start();
         
         
     }

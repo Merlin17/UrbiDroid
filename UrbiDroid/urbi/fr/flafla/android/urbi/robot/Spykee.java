@@ -17,6 +17,7 @@ import fr.flafla.android.urbi.control.Camera;
  * 
  */
 public class Spykee extends Robot {
+	private static final double CAMERA_FREQUENCE = (double) 100 / 1000.;
 
 	UClient uClient;
 	SpykeeMovement threadMovement;
@@ -62,7 +63,7 @@ public class Spykee extends Robot {
 		}
 
 		@Override
-		public void start(int freq) {
+		public void start() {
 			if (!init) {
 				uClient.addCallback(UIMG, new UCallback() {
 					@Override
@@ -76,7 +77,7 @@ public class Spykee extends Robot {
 				uClient.addTag(UIMG);
 				uClient.sendScript("camera.format = 1|;");
 				uClient.sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() {camera.val})|;");
-				uClient.sendScript("every(" + (double) freq / 1000. + "s) {" + UIMG + "<<camera.val},");
+				uClient.sendScript("every(" + CAMERA_FREQUENCE + "s) {" + UIMG + "<<camera.val},");
 			}
 		}
 

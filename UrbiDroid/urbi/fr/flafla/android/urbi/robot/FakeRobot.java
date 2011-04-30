@@ -25,7 +25,7 @@ public class FakeRobot extends Robot {
 		protected boolean interrupt = false;
 
 		@Override
-		public void start(final int freq) {
+		public void start() {
 			interrupt = false;
 			Thread thread = new Thread() {
 				@Override

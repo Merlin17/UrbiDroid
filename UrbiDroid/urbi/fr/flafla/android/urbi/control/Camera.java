@@ -51,7 +51,7 @@ public abstract class Camera {
 	 * Method to start acquisition
 	 * @param freq Frequence in ms
 	 */
-	public abstract void start(int freq);
+	public abstract void start();
 
 	/**
 	 * Method to stop acquisition
