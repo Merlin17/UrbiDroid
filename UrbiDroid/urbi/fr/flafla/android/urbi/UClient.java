@@ -75,7 +75,7 @@ public class UClient {
 	/**
 	 * Ensure that the socket is initialized
 	 */
-	protected void ensureSocket() {
+	public void ensureSocket() {
 		try {
 			if (!init) {
 				// Ouverture du socket
@@ -207,5 +207,13 @@ public class UClient {
 				callback.handle(msg);
 			}
 		}
+	}
+
+	/**
+	 * Add an urbi tag
+	 * @param name
+	 */
+	public void addTag(String name) {
+		sendScript("var " + name + " = Channel.new(\"" + name + "\")|;");
 	}
 }
