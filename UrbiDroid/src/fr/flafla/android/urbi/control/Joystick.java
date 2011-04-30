@@ -25,7 +25,6 @@ public class Joystick extends View implements OnTouchListener {
 		VERTICAL, HORIZONTAL
 	}
 
-	private static final int spaceBetweenJoysticks = 300;
 	private static final int widthJoystick = 300;
 	private static final int heightJoystick = 300;
 
@@ -38,6 +37,9 @@ public class Joystick extends View implements OnTouchListener {
 		protected float yPosition;
 		protected float halfWidth;
 		protected float halfHeight;
+
+		protected float lastX;
+		protected float lastY;
 
 		public boolean isInUse = false;
 
@@ -74,6 +76,9 @@ public class Joystick extends View implements OnTouchListener {
 		}
 
 		public void move(float x, float y) {
+			lastX = x;
+			lastY = y;
+
 			if (axes.x != null) {
 				float relX = x - xPosition;
 				if (relX > 0)
@@ -92,8 +97,8 @@ public class Joystick extends View implements OnTouchListener {
 				else
 					axes.y.value = 0;
 			}
-		}
 
+		}
 		public void released() {
 			if (axes.x != null)
 				axes.x.value = 0;
@@ -168,6 +173,7 @@ public class Joystick extends View implements OnTouchListener {
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
+		int pointerCount = event.getPointerCount();
 		switch (event.getAction()) {
 		case MotionEvent.ACTION_POINTER_2_UP:
 		case MotionEvent.ACTION_POINTER_UP:
@@ -175,9 +181,10 @@ public class Joystick extends View implements OnTouchListener {
 		case MotionEvent.ACTION_CANCEL:
 		case MotionEvent.ACTION_MOVE:
 
+			// Search if each joystick is used
 			for (JoystickBase j : joysticks) {
 				boolean oneAtLeast = false;
-				for (int id = 0; id <= event.getPointerCount(); ++id) {
+				for (int id = 0; id < pointerCount; ++id) {
 					// Check we are in the zone
 					float xId = event.getX(id);
 					float yId = event.getY(id);
@@ -191,6 +198,8 @@ public class Joystick extends View implements OnTouchListener {
 					}
 
 				}
+
+				// If the joystick have been released, stop robot
 				if (!oneAtLeast && j.isInUse) {
 					j.released();
 				}
