@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 
 import fr.flafla.android.urbi.UBinary;
 import fr.flafla.android.urbi.UCallback;
+import fr.flafla.android.urbi.UClient;
 import fr.flafla.android.urbi.UMessage;
 import fr.flafla.android.urbi.control.Axes;
 import fr.flafla.android.urbi.control.Axes.Axis;
@@ -17,14 +18,53 @@ import fr.flafla.android.urbi.control.Camera;
  */
 public class Spykee extends Robot {
 
-	protected class SpykeeCamera extends Camera {
+	UClient uClient;
+	SpykeeMovement threadMovement;
+
+	protected class SpykeeMovement extends Thread {
+		private int lastL = Integer.MAX_VALUE;
+		private int lastR = Integer.MAX_VALUE;
+		private boolean interrupt = false;
+
+		@Override
+		public void run() {
+			while (!interrupt) {
+				int trackL = axes[0].y.value;
+				int trackR = axes[1].y.value;
+				if (lastL != trackL || lastR != trackR) {
+					move(trackL, trackR);
+					lastL = trackL;
+					lastR = trackR;
+					System.out.println("move");
+				}
+
+				try {
+					// Block the thread
+					sleep(250);
+				} catch (InterruptedException e) {
+					// No error : just execute movement
+				}
+			}
+		}
+
+		public void stopThread() {
+			interrupt = true;
+		}
+	}
+
+	protected static class SpykeeCamera extends Camera {
 		private static final String UIMG = "uimg";
 		private boolean init = false;
+		private UClient uClient;
+
+		public SpykeeCamera(String ip, int port) {
+			uClient = new UClient(ip, port);
+		}
 
 		@Override
 		public void start(int freq) {
 			if (!init) {
-				addCallback(UIMG, new UCallback() {
+				uClient.addCallback(UIMG, new UCallback() {
 					@Override
 					public boolean handle(UMessage msg) {
 						if (msg instanceof UBinary)
@@ -33,10 +73,10 @@ public class Spykee extends Robot {
 					}
 				});
 
-				addTag(UIMG);
-				sendScript("camera.format = 1|;");
-				sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() {camera.val})|;");
-				sendScript("every(" + (double) freq / 1000. + "s) {" + UIMG + "<<camera.val},");
+				uClient.addTag(UIMG);
+				uClient.sendScript("camera.format = 1|;");
+				uClient.sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() {camera.val})|;");
+				uClient.sendScript("every(" + (double) freq / 1000. + "s) {" + UIMG + "<<camera.val},");
 			}
 		}
 
@@ -53,14 +93,18 @@ public class Spykee extends Robot {
 	 * @param port
 	 */
 	public Spykee(String ip, int port) {
-		super(ip, port);
+		super();
+
+		uClient = new UClient(ip, port);
+		threadMovement = new SpykeeMovement();
+
 		this.axes = new Axes[] {
 				new Axes(null, new Axis(-100, 100)), new Axes(null, new Axis(-100, 100))
 		};
 		this.cameras = new Camera[] {
-			new SpykeeCamera()
+			new SpykeeCamera(ip, port)
 		};
-		ensureSocket();
+		uClient.ensureSocket();
 	}
 
 	/**
@@ -68,8 +112,24 @@ public class Spykee extends Robot {
 	 */
 	@Override
 	public void move() {
-		int trackL = axes[0].y.value;
-		int trackR = axes[1].y.value;
-		sendScript("trackL.val=" + trackL + "|&trackR.val=" + trackR + "|;");
+		// TODO make a thread to make movement smooth
+		// Just launch thread if necessary
+		try {
+			if (!threadMovement.isAlive())
+				threadMovement.start();
+		} catch (IllegalThreadStateException e) {
+			// The thread is already in action
+			e.printStackTrace();
+		}
+	}
+
+	public void stop() {
+		axes[0].y.value = 0;
+		axes[1].y.value = 0;
+		move(0, 0);
+	}
+
+	protected void move(int trackL, int trackR) {
+		uClient.sendScript("trackL.val=" + trackL + "|&trackR.val=" + trackR + "|;");
 	}
 }
