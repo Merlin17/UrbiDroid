@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-		// Robot.actuel = new FakeRobot("spykee", UClient.PORT, this);
+		// Robot.actuel = new FakeRobot(this);
 		Robot.actuel = new Spykee("192.168.1.14", UClient.PORT);
 
 		// Hide title and notification bar
@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		camera.start(25);
+		camera.start(100);
         
         
     }
