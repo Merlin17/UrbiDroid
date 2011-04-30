@@ -4,7 +4,6 @@
 package fr.flafla.android.urbi.robot;
 
 
-import fr.flafla.android.urbi.UClient;
 import fr.flafla.android.urbi.control.Axes;
 import fr.flafla.android.urbi.control.Camera;
 
@@ -14,7 +13,7 @@ import fr.flafla.android.urbi.control.Camera;
  * @author merlin
  * 
  */
-public abstract class Robot extends UClient {
+public abstract class Robot {
 	/**
 	 * One only robot is managed
 	 */
@@ -26,8 +25,7 @@ public abstract class Robot extends UClient {
 	/** List of robot's cameras */
 	protected Camera[] cameras;
 
-	protected Robot(String ip, int port) {
-		super(ip, port);
+	protected Robot() {
 	}
 
 	/**
@@ -49,13 +47,4 @@ public abstract class Robot extends UClient {
 		return cameras;
 	}
 	
-	
-	/**
-	 * Add an urbi tag
-	 * @param name
-	 */
-	protected void addTag(String name) {
-		sendScript("var " + name + " = Channel.new(\"" + name + "\")|;");
-	}
-
 }
