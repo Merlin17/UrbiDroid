@@ -60,6 +60,7 @@ public class FakeRobot extends Robot {
 	public FakeRobot(Context context) {
 		this.axes = new Axes[] {
 				new Axes(null, new Axis(-100, 100)), new Axes(null, new Axis(-100, 100))
+		// new Axes(new Axis(-100, 100), new Axis(-100, 100))
 		};
 		this.cameras = new Camera[] {
 			new FakeCamera()
@@ -71,8 +72,15 @@ public class FakeRobot extends Robot {
 	@Override
 	public void move() {
 		// Get axes value
-		int trackL = axes[0].y.value;
-		int trackR = axes[1].y.value;
+		int trackL;
+		int trackR;
+		if (axes.length == 2) {
+			trackL = axes[0].y.value;
+			trackR = axes[1].y.value;
+		} else {
+			trackL = axes[0].x.value;
+			trackR = axes[0].y.value;
+		}
 
 		// Toast values
 		if (toast == null)
