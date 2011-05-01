@@ -12,8 +12,8 @@ import android.widget.LinearLayout;
 import fr.flafla.android.urbi.control.Camera;
 import fr.flafla.android.urbi.control.Camera.ImageHandler;
 import fr.flafla.android.urbi.control.Joystick;
+import fr.flafla.android.urbi.robot.FakeRobot;
 import fr.flafla.android.urbi.robot.Robot;
-import fr.flafla.android.urbi.robot.Spykee;
 
 public class MainActivity extends Activity {
 	
@@ -37,8 +37,8 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-		// Robot.actuel = new FakeRobot(this);
-		Robot.actuel = new Spykee("192.168.1.14", UClient.PORT);
+		Robot.actuel = new FakeRobot(this);
+		// Robot.actuel = new Spykee("192.168.1.14", UClient.PORT);
 
 		// Hide title and notification bar
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
