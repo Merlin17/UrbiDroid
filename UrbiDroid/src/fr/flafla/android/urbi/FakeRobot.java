@@ -1,7 +1,7 @@
 /**
  * 
  */
-package fr.flafla.android.urbi.robot;
+package fr.flafla.android.urbi;
 
 import java.io.InputStream;
 
@@ -11,6 +11,7 @@ import fr.flafla.android.urbi.R;
 import fr.flafla.android.urbi.control.Axes;
 import fr.flafla.android.urbi.control.Axes.Axis;
 import fr.flafla.android.urbi.control.Camera;
+import fr.flafla.android.urbi.robot.Robot;
 
 /**
  * Faux robot utile pour le développement. Les actions sont affichées à l'écran

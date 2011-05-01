@@ -12,7 +12,6 @@ import android.widget.LinearLayout;
 import fr.flafla.android.urbi.control.Camera;
 import fr.flafla.android.urbi.control.Camera.ImageHandler;
 import fr.flafla.android.urbi.control.Joystick;
-import fr.flafla.android.urbi.robot.FakeRobot;
 import fr.flafla.android.urbi.robot.Robot;
 
 public class MainActivity extends Activity {
