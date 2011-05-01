@@ -38,6 +38,8 @@ public class Joystick extends View implements OnTouchListener {
 		protected float halfWidth;
 		protected float halfHeight;
 
+		protected final float halfPositionSize = 30f;
+
 		protected float lastX;
 		protected float lastY;
 
@@ -45,6 +47,8 @@ public class Joystick extends View implements OnTouchListener {
 
 		/** Reference to axes model */
 		private final Axes axes;
+		private Paint paintStroke;
+		private Paint paintPosition;
 
 		public JoystickBase(Axes axes, float xPosition, float yPosition, float width, float height) {
 			this.axes = axes;
@@ -52,6 +56,20 @@ public class Joystick extends View implements OnTouchListener {
 			this.yPosition = yPosition;
 			halfHeight = height / 2;
 			halfWidth = width / 2;
+
+			init();
+		}
+
+		protected void init() {
+			paintStroke = new Paint();
+			paintStroke.setStrokeWidth(5);
+			paintStroke.setStyle(Paint.Style.STROKE);
+			paintStroke.setARGB(200, 175, 175, 175);
+
+			paintPosition = new Paint();
+			paintPosition.setStrokeWidth(5);
+			paintPosition.setStyle(Paint.Style.FILL);
+			paintPosition.setARGB(50, 150, 150, 150);
 		}
 
 		public void setxPosition(float xPosition) {
@@ -64,11 +82,12 @@ public class Joystick extends View implements OnTouchListener {
 
 		public void onDraw(Canvas canvas) {
 			RectF oval = new RectF(xPosition - halfWidth, yPosition - halfHeight, xPosition + halfWidth, yPosition + halfHeight);
-			Paint paint = new Paint();
-			paint.setStrokeWidth(5);
-			paint.setStyle(Paint.Style.STROKE);
-			paint.setARGB(255, 0, 0, 255);
-			canvas.drawOval(oval, paint);
+
+			RectF oval2 = new RectF(lastX - halfPositionSize, lastY - halfPositionSize, lastX + halfPositionSize, lastY + halfPositionSize);
+
+			canvas.drawOval(oval, paintStroke);
+			canvas.drawOval(oval2, paintPosition);
+
 		}
 
 		public boolean isIn(float x, float y) {
@@ -100,6 +119,8 @@ public class Joystick extends View implements OnTouchListener {
 
 		}
 		public void released() {
+			lastX = xPosition;
+			lastY = yPosition;
 			if (axes.x != null)
 				axes.x.value = 0;
 			if (axes.y != null)
@@ -206,6 +227,7 @@ public class Joystick extends View implements OnTouchListener {
 			}
 
 			move();
+			invalidate();
 
 			break;
 		}
@@ -219,10 +241,12 @@ public class Joystick extends View implements OnTouchListener {
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
+		canvas.save();
 		for (JoystickBase joystick : joysticks) {
 			joystick.onDraw(canvas);
 		}
+
+		canvas.restore();
 	}
 
 }
