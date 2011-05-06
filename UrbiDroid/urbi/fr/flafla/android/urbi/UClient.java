@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.flafla.android.urbi.log.LoggerFactory;
 import fr.flafla.android.urbi.robot.RobotException;
 
 /**
@@ -162,7 +163,7 @@ public class UClient {
 		}
 		if (!thread.isAlive()) {
 			thread.start();
-			System.out.println("thread launched");
+			LoggerFactory.logger().i("UClient", "Listener launched");
 		}
 	}
 
