@@ -11,45 +11,39 @@ import fr.flafla.android.urbi.control.Axes.Axis;
 import fr.flafla.android.urbi.control.Camera;
 
 /**
- * Classe de gestion du robot Spykee avec urbi.
+ * This class manage a mecano spykee with urbi.<br/>
+ * To use it, you have to flash the spykee with the urbi firmware.
  * 
  * @author merlin
  * 
  */
 public class Spykee extends Robot {
-	private static final double CAMERA_FREQUENCE = (double) 100 / 1000.;
+	/** Frequency of the camera */
+	private static final double CAMERA_FREQUENCY = (double) 100 / 1000.;
+	/** Interval between 2 spykee movement order */
+	private static final int INTERVAL_BETWEEN_MOVEMENT = 250;
 
 	UClient uClient;
 	SpykeeMovement threadMovement;
 
-	protected class SpykeeMovement extends Thread {
-		private int lastL = Integer.MAX_VALUE;
-		private int lastR = Integer.MAX_VALUE;
-		private boolean interrupt = false;
-
-		@Override
-		public void run() {
-			while (!interrupt) {
-				int trackL = axes[0].y.value;
-				int trackR = axes[1].y.value;
-				if (lastL != trackL || lastR != trackR) {
-					move(trackL, trackR);
-					lastL = trackL;
-					lastR = trackR;
-					System.out.println("move");
-				}
-
-				try {
-					// Block the thread
-					sleep(250);
-				} catch (InterruptedException e) {
-					// No error : just execute movement
-				}
-			}
+	protected class SpykeeMovement extends SmoothMovement {
+		public SpykeeMovement() {
+			super(INTERVAL_BETWEEN_MOVEMENT);
 		}
 
-		public void stopThread() {
-			interrupt = true;
+		private int lastL = Integer.MAX_VALUE;
+		private int lastR = Integer.MAX_VALUE;
+
+		@Override
+		protected void movement() {
+			int trackL = axes[0].y.value;
+			int trackR = axes[1].y.value;
+			if (lastL != trackL || lastR != trackR) {
+				move(trackL, trackR);
+				lastL = trackL;
+				lastR = trackR;
+				System.out.println("move");
+			}
 		}
 	}
 
@@ -77,7 +71,7 @@ public class Spykee extends Robot {
 				uClient.addTag(UIMG);
 				uClient.sendScript("camera.format = 1|;");
 				uClient.sendScript("camera.getSlot(\"val\").notifyChange(uobjects_handle, function() {camera.val})|;");
-				uClient.sendScript("every(" + CAMERA_FREQUENCE + "s) {" + UIMG + "<<camera.val},");
+				uClient.sendScript("every(" + CAMERA_FREQUENCY + "s) {" + UIMG + "<<camera.val},");
 			}
 		}
 
@@ -94,8 +88,6 @@ public class Spykee extends Robot {
 	 * @param port
 	 */
 	public Spykee(String ip, int port) {
-		super();
-
 		uClient = new UClient(ip, port);
 		threadMovement = new SpykeeMovement();
 
@@ -113,24 +105,27 @@ public class Spykee extends Robot {
 	 */
 	@Override
 	public void move() {
-		// TODO make a thread to make movement smooth
-		// Just launch thread if necessary
-		try {
-			if (!threadMovement.isAlive())
-				threadMovement.start();
-		} catch (IllegalThreadStateException e) {
-			// The thread is already in action
-			e.printStackTrace();
-		}
+		// Just ensure the thread is launched
+		threadMovement.launchSmooth();
 	}
 
+	/**
+	 * Stop the spykee
+	 */
 	public void stop() {
 		axes[0].y.value = 0;
 		axes[1].y.value = 0;
 		move(0, 0);
 	}
 
+	/**
+	 * Force move without waiting the next thread step
+	 * @param trackL
+	 * @param trackR
+	 */
 	protected void move(int trackL, int trackR) {
-		uClient.sendScript("trackL.val=" + trackL + "|&trackR.val=" + trackR + "|;");
+		axes[0].y.value = trackL;
+		axes[0].y.value = trackR;
+		threadMovement.movement();
 	}
 }
