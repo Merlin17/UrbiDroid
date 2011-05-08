@@ -109,6 +109,7 @@ public final class Parser {
 	}
 
 	private static String getToken(ByteBuffer buffer, int begin) {
+		// FIXME the token read can throw an overflow exception
 		return new String(buffer.array(), begin, buffer.arrayOffset() + buffer.position() - 1 - begin);
 	}
 }
