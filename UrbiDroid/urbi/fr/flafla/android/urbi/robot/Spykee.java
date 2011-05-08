@@ -113,8 +113,6 @@ public class Spykee extends Robot {
 	 * Stop the spykee
 	 */
 	public void stop() {
-		axes[0].y.value = 0;
-		axes[1].y.value = 0;
 		move(0, 0);
 	}
 
