@@ -1,5 +1,7 @@
 package fr.flafla.android.urbi.robot;
 
+import static fr.flafla.android.urbi.log.LoggerFactory.logger;
+
 import java.io.ByteArrayInputStream;
 
 import fr.flafla.android.urbi.UBinary;
@@ -42,7 +44,6 @@ public class Spykee extends Robot {
 				move(trackL, trackR);
 				lastL = trackL;
 				lastR = trackR;
-				System.out.println("move");
 			}
 		}
 	}
@@ -125,6 +126,7 @@ public class Spykee extends Robot {
 	 * @param trackR
 	 */
 	protected void move(int trackL, int trackR) {
+		logger().i("Spykee", "Move [" + trackL + ", " + trackR + "]");
 		uClient.sendScript("trackL.val=" + trackL + "|&trackR.val=" + trackR + "|;");
 	}
 }
