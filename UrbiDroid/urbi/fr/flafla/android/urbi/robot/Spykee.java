@@ -113,6 +113,9 @@ public class Spykee extends Robot {
 	 * Stop the spykee
 	 */
 	public void stop() {
+		threadMovement.stopSmooth();
+		axes[0].y.value = 0;
+		axes[0].y.value = 0;
 		move(0, 0);
 	}
 
@@ -122,8 +125,6 @@ public class Spykee extends Robot {
 	 * @param trackR
 	 */
 	protected void move(int trackL, int trackR) {
-		axes[0].y.value = trackL;
-		axes[0].y.value = trackR;
-		threadMovement.movement();
+		uClient.sendScript("trackL.val=" + trackL + "|&trackR.val=" + trackR + "|;");
 	}
 }
