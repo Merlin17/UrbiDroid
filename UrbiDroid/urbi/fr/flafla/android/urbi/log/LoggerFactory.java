@@ -1,5 +1,7 @@
 package fr.flafla.android.urbi.log;
 
+import fr.flafla.android.urbi.log.Logger.Level;
+
 /**
  * This factory allow to switch between default logger and another like android logger
  * 
@@ -9,10 +11,13 @@ package fr.flafla.android.urbi.log;
 public final class LoggerFactory {
 	private static Logger logger;
 
+	/** The default level */
+	private static Level defaultLevel = Level.INFO;
+
 	public static Class<? extends Logger> loggerClass = Logger.class;
 
 	public static Logger logger() {
-		if (logger == null)
+		if (logger == null) {
 			try {
 				logger = loggerClass.newInstance();
 			} catch (IllegalAccessException e) {
@@ -24,6 +29,8 @@ public final class LoggerFactory {
 				e.printStackTrace();
 				logger = new Logger();
 			}
+			logger.setLevel(defaultLevel);
+		}
 
 		return logger;
 	}
