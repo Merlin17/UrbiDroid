@@ -1,5 +1,7 @@
 package fr.flafla.android.urbi;
 
+import static fr.flafla.android.urbi.log.LoggerFactory.logger;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -16,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.flafla.android.urbi.log.LoggerFactory;
 import fr.flafla.android.urbi.robot.RobotException;
 
 /**
@@ -163,7 +164,7 @@ public class UClient {
 		}
 		if (!thread.isAlive()) {
 			thread.start();
-			LoggerFactory.logger().i("UClient", "Listener launched");
+			logger().i("UClient", "Listener launched");
 		}
 	}
 
