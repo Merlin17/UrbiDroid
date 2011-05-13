@@ -126,7 +126,13 @@ public class Spykee extends Robot {
 	 * @param trackR
 	 */
 	protected void move(int trackL, int trackR) {
-		logger().i("Spykee", "Move [" + trackL + ", " + trackR + "]");
-		uClient.sendScript("trackL.val=" + trackL + "|&trackR.val=" + trackR + "|;");
+		if (logger().isDebug()) {
+			StringBuilder msgDebug = new StringBuilder();
+			msgDebug.append("Move [").append(trackL).append(", ").append(trackR).append("]");
+			logger().i("Spykee", msgDebug.toString());
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append("trackL.val=").append(trackL).append("|&trackR.val=").append(trackR).append("|;");
+		uClient.sendScript(builder.toString());
 	}
 }

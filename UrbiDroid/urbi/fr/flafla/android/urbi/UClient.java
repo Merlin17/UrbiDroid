@@ -80,7 +80,7 @@ public class UClient {
 	public void ensureSocket() {
 		try {
 			if (!init) {
-				// Ouverture du socket
+				// Open the socket
 				channel = SocketChannel.open();
 				channel.connect(new InetSocketAddress(InetAddress.getByName(ip), port));
 				init = channel.finishConnect();
@@ -197,6 +197,7 @@ public class UClient {
 	 * @param msg
 	 */
 	protected void notifyCallback(UMessage msg) {
+		// TODO use the boolean returned by handlers
 		// Notify callback
 		List<UCallback> listCallback = null;
 		synchronized (callbacks) {
@@ -216,6 +217,8 @@ public class UClient {
 	 * @param name
 	 */
 	public void addTag(String name) {
-		sendScript("var " + name + " = Channel.new(\"" + name + "\")|;");
+		StringBuilder builder = new StringBuilder();
+		builder.append("var").append(name).append(" = Channel.new(\"").append(name).append("\")|;");
+		sendScript(builder.toString());
 	}
 }
