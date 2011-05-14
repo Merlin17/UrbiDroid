@@ -41,35 +41,50 @@ public class Logger {
 	}
 
 	public void d(String tag, String msg) {
-		System.out.println(msg);
+		if (isDebug())
+			System.out.println(msg);
 	}
 
 	public void d(String tag, String msg, Throwable e) {
-		System.out.println(msg);
+		if (isDebug()) {
+			System.out.println(msg);
+			e.printStackTrace(System.out);
+		}
 	}
 
 	public void i(String tag, String msg) {
-		System.out.println(msg);
+		if (isInfo())
+			System.out.println(msg);
 	}
 
 	public void i(String tag, String msg, Throwable e) {
-		System.out.println(msg);
+		if (isInfo()) {
+			System.out.println(msg);
+			e.printStackTrace(System.out);
+		}
 	}
 
 	public void w(String tag, String msg) {
-		System.out.println(msg);
+		if (isWarn())
+			System.out.println(msg);
 	}
 
 	public void w(String tag, String msg, Throwable e) {
-		System.out.println(msg);
+		if (isWarn()) {
+			System.out.println(msg);
+			e.printStackTrace(System.out);
+		}
 	}
 
 	public void e(String tag, String msg) {
-		System.out.println(msg);
+		if (isError())
+			System.out.println(msg);
 	}
 
 	public void e(String tag, String msg, Throwable e) {
-		System.out.println(msg);
-		e.printStackTrace();
+		if (isError()) {
+			System.out.println(msg);
+			e.printStackTrace(System.err);
+		}
 	}
 }
