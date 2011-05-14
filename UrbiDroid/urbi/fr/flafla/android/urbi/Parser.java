@@ -12,6 +12,8 @@ import java.nio.channels.SocketChannel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fr.flafla.android.urbi.log.LoggerFactory;
+
 /**
  * This class is a parser to read message from urbi
  * 
@@ -34,9 +36,10 @@ public final class Parser {
 			char c;
 			while ((c = (char) getFromBuffer(buffer, channel)) != ':')
 				// Check char is ascii number
-				if (c < '0' || c > '9')
+				if (c < '0' || c > '9') {
+					LoggerFactory.logger().w("UrbiParser", "Not well formed message");
 					return null;
-				;
+				}
 			String time = getToken(buffer, begin);
 
 			// Read tag
@@ -59,34 +62,15 @@ public final class Parser {
 				msg = matcher.group(2);
 
 				// Read binary
-
-				// 1. Read bytes in buffer
-				byte[] bytes = new byte[length + 1];
-				int len = buffer.limit() - buffer.position();
-				buffer.get(bytes, 0, len);
-
-				// 2. Read socket to get the end of the binary stream
-				int pos = len;
-				int toRead = length - len;
-				while (toRead > 0) {
-					buffer.clear();
-					int read;
-					while ((read = channel.read(buffer)) == 0)
-						;
-					buffer.flip();
-					buffer.get(bytes, pos, min(toRead, read));
-					pos += read;
-					toRead -= read;
-				}
-				return new UBinary(tag, time, msg, length, bytes);
+				return new UBinary(tag, time, msg, length, getArray(channel, buffer, length));
 			} else {
 				return new UMessage(tag, time, msg);
 			}
 		} catch (BufferUnderflowException e) {
-			e.printStackTrace();
+			LoggerFactory.logger().w("UrbiParser", "Buffer under flow on read urbi message", e);
 			return null;
 		} catch (IOException e) {
-			e.printStackTrace();
+			LoggerFactory.logger().w("UrbiParser", "IOExcepetion was thrown on read urbi message", e);
 			return null;
 		}
 	}
@@ -111,5 +95,36 @@ public final class Parser {
 	private static String getToken(ByteBuffer buffer, int begin) {
 		// FIXME the token read can throw an overflow exception
 		return new String(buffer.array(), begin, buffer.arrayOffset() + buffer.position() - 1 - begin);
+	}
+
+	/**
+	 * This method read the channel to return a byte array corresponding to the length
+	 * @param channel The socket channel to read
+	 * @param buffer The byte buffer to help the read
+	 * @param length The length of the returned array
+	 * @return The byte array
+	 * @throws IOException An {@link IOException} can be thrown
+	 */
+	private static byte[] getArray(SocketChannel channel, ByteBuffer buffer, int length) throws IOException {
+		// 1. Read bytes in buffer
+		byte[] bytes = new byte[length + 1];
+		int len = buffer.limit() - buffer.position();
+		buffer.get(bytes, 0, len);
+
+		// 2. Read socket to get the end of the binary stream
+		int pos = len;
+		int toRead = length - len;
+		while (toRead > 0) {
+			buffer.clear();
+			int read;
+			while ((read = channel.read(buffer)) == 0)
+				;
+			buffer.flip();
+			buffer.get(bytes, pos, min(toRead, read));
+			pos += read;
+			toRead -= read;
+		}
+
+		return bytes;
 	}
 }
