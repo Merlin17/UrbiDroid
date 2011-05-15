@@ -20,4 +20,9 @@ public class UMessage {
 		this.msg = msg;
 	}
 
+	@Override
+	public String toString() {
+		return "UMessage [tag=" + tag + ", time=" + time + ", msg=" + msg + "]";
+	}
+
 }
