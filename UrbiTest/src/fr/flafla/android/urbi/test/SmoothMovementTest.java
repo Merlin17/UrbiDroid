@@ -17,25 +17,6 @@ import fr.flafla.android.urbi.robot.SmoothMovement;
  */
 public class SmoothMovementTest {
 	/**
-	 * This class is a counter used for tests
-	 */
-	static final class Counter {
-		private int value = 0;
-
-		public final void reset() {
-			value = 0;
-		}
-
-		public final synchronized void inc() {
-			value++;
-		}
-
-		public final synchronized int value() {
-			return value;
-		}
-	}
-
-	/**
 	 * This method test the {@link SmoothMovement} class
 	 * @throws InterruptedException
 	 */
