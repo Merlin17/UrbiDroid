@@ -3,16 +3,16 @@
  */
 package fr.flafla.android.urbi;
 
+import static fr.flafla.android.urbi.log.LoggerFactory.logger;
 import static java.lang.Math.min;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import fr.flafla.android.urbi.log.LoggerFactory;
 
 /**
  * This class is a parser to read message from urbi
@@ -23,36 +23,19 @@ import fr.flafla.android.urbi.log.LoggerFactory;
 public final class Parser {
 	public static final Pattern detectBin = Pattern.compile("BIN ([0-9]+) (.*)");
 
-	public static UMessage parse(ByteBuffer buffer, SocketChannel channel) {
+	public static UMessage parse(ByteBuffer buffer, SocketChannel channel) throws ClosedChannelException {
 		try {
-			int begin;
+			// int begin;
 
 			// [0-9+:a-Z+] (BIN | msg)
-			while (getFromBuffer(buffer, channel) != '[')
-				;
-			begin = buffer.arrayOffset() + buffer.position();
-
+			String deleted = getNextToken(channel, buffer, '[');
+			logger().d("UrbiParser", "deleted : " + deleted);
 			// Read time
-			char c;
-			while ((c = (char) getFromBuffer(buffer, channel)) != ':')
-				// Check char is ascii number
-				if (c < '0' || c > '9') {
-					LoggerFactory.logger().w("UrbiParser", "Not well formed message");
-					return null;
-				}
-			String time = getToken(buffer, begin);
-
+			String time = getNextToken(channel, buffer, ':');
 			// Read tag
-			begin = buffer.arrayOffset() + buffer.position();
-			while (getFromBuffer(buffer, channel) != ']')
-				;
-			String tag = getToken(buffer, begin);
-
+			String tag = getNextToken(channel, buffer, ']');
 			// Read Message
-			begin = buffer.arrayOffset() + buffer.position();
-			while (buffer.position() < buffer.limit() && getFromBuffer(buffer, channel) != '\n')
-				;
-			String msg = getToken(buffer, begin);
+			String msg = getNextToken(channel, buffer, '\n');
 
 			// Detect if message is binary or not
 			Matcher matcher = detectBin.matcher(msg);
@@ -66,35 +49,60 @@ public final class Parser {
 			} else {
 				return new UMessage(tag, time, msg);
 			}
+		} catch (ClosedChannelException e) {
+			throw e;
 		} catch (BufferUnderflowException e) {
-			LoggerFactory.logger().w("UrbiParser", "Buffer under flow on read urbi message", e);
-			return null;
+			logger().w("UrbiParser", "Buffer under flow on read urbi message", e);
+			throw new UrbiException("Buffer under flow on read urbi message", e);
 		} catch (IOException e) {
-			LoggerFactory.logger().w("UrbiParser", "IOExcepetion was thrown on read urbi message", e);
-			return null;
+			logger().w("UrbiParser", "IOExcepetion was thrown on read urbi message", e);
+			throw new UrbiException("IOExcepetion was thrown on read urbi message", e);
 		}
 	}
 
 	/**
-	 * This method get a byte from the buffer. Read channel if overflow
-	 * @param buffer
-	 * @param channel
-	 * @return the byte
-	 * @throws IOException
+	 * This method get a string from buffer from begin to actual position
+	 * @param buffer The buffer
+	 * @param begin The offset position
+	 * @return the string
 	 */
-	private static byte getFromBuffer(ByteBuffer buffer, SocketChannel channel) throws IOException {
-		if (buffer.limit() == buffer.position()) {
-			buffer.clear();
-			while (channel.read(buffer) == 0)
-				;
-			buffer.flip();
-		}
-		return buffer.get();
+	private static String getToken(ByteBuffer buffer, int begin) {
+		return new String(buffer.array(), begin, buffer.arrayOffset() + buffer.position() - 1 - begin);
 	}
 
-	private static String getToken(ByteBuffer buffer, int begin) {
-		// FIXME the token read can throw an overflow exception
-		return new String(buffer.array(), begin, buffer.arrayOffset() + buffer.position() - 1 - begin);
+	/**
+	 * This method get the next token ended by the endChar.
+	 * @param channel The socket channel
+	 * @param buffer The byte buffer used to store
+	 * @param endChar The last char (not included in the result)
+	 * @return The token
+	 * @throws IOException
+	 */
+	private static String getNextToken(SocketChannel channel, ByteBuffer buffer, char endChar) throws IOException {
+		StringBuilder builder = new StringBuilder();
+		// Read tag
+		if (buffer.limit() == buffer.position()) {
+			readNext(channel, buffer);
+		}
+		int begin = buffer.arrayOffset() + buffer.position();
+		while (buffer.get() != endChar) {
+			if (buffer.limit() == buffer.position()) {
+				builder.append(getToken(buffer, begin));
+				readNext(channel, buffer);
+				begin = 0;
+			}
+		}
+
+		builder.append(getToken(buffer, begin));
+
+		return builder.toString();
+	}
+
+	private static void readNext(SocketChannel channel, ByteBuffer buffer) throws IOException {
+		buffer.clear();
+		while (channel.read(buffer) == 0)
+			;
+		buffer.flip();
 	}
 
 	/**
@@ -107,7 +115,7 @@ public final class Parser {
 	 */
 	private static byte[] getArray(SocketChannel channel, ByteBuffer buffer, int length) throws IOException {
 		// 1. Read bytes in buffer
-		byte[] bytes = new byte[length + 1];
+		byte[] bytes = new byte[length];
 		int len = buffer.limit() - buffer.position();
 		buffer.get(bytes, 0, len);
 
