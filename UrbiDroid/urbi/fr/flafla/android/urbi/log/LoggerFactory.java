@@ -12,7 +12,7 @@ public final class LoggerFactory {
 	private static Logger logger;
 
 	/** The default level */
-	private static Level defaultLevel = Level.INFO;
+	public static Level defaultLevel = Level.INFO;
 
 	public static Class<? extends Logger> loggerClass = Logger.class;
 
@@ -29,6 +29,7 @@ public final class LoggerFactory {
 				e.printStackTrace();
 				logger = new Logger();
 			}
+			System.out.println("Init logger level with " + defaultLevel.name());
 			logger.setLevel(defaultLevel);
 		}
 
