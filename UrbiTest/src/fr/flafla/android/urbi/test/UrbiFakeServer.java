@@ -37,6 +37,7 @@ public class UrbiFakeServer {
 				runServer(socket);
 			} catch (Exception e) {
 				logger().e("UrbiFakeServer", "Error in server", e);
+				throw new RuntimeException("Error in server", e);
 			}
 		}
 	}
@@ -45,11 +46,18 @@ public class UrbiFakeServer {
 		public void handle(String msg);
 	}
 
+	public static interface Message {
+		public byte[] message(String msg);
+	}
+
 	/** Server socket */
 	private ServerSocket server;
 
 	/** List of all handlers */
 	public final List<Handler> handlers = new ArrayList<Handler>();
+
+	/** List of message */
+	public final List<Message> messages = new ArrayList<Message>();
 
 	private Thread mainThread;
 
@@ -63,6 +71,7 @@ public class UrbiFakeServer {
 					Socket socket;
 					try {
 						socket = server.accept();
+						logger().d("Server", "Connection accepted");
 						new UrbiFakeServerThread(socket).start();
 					} catch (SocketException e) {
 						logger().i("UrbiFakeServer", "Server closed");
@@ -93,9 +102,15 @@ public class UrbiFakeServer {
 		while (socket.isConnected()) {
 			BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-			String msg = new String(input.readLine());
-			for (Handler handler : handlers) {
-				handler.handle(msg);
+			String line = input.readLine();
+			if (line != null) {
+				String msg = new String(line);
+				for (Handler handler : handlers) {
+					handler.handle(msg);
+				}
+				for (Message message : messages) {
+					socket.getOutputStream().write(message.message(msg));
+				}
 			}
 		}
 	}
