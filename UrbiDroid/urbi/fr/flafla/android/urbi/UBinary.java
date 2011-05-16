@@ -17,4 +17,8 @@ public class UBinary extends UMessage {
 		this.array = array;
 	}
 
+	@Override
+	public String toString() {
+		return "UMessage [tag=" + tag + ", time=" + time + ", msg=" + msg + ", length = " + length + ", array.length = " + array.length + "]";
+	}
 }
