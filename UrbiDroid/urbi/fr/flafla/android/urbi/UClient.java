@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -114,6 +115,15 @@ public class UClient {
 	}
 
 	/**
+	 * This method close the socket
+	 * @throws IOException
+	 */
+	public void closeConnection() throws IOException {
+		if (channel != null && channel.isConnected())
+			channel.close();
+	}
+
+	/**
 	 * Add a callback to the internal list
 	 * @param tag The tag that throw callback
 	 * @param callback The callback thrown
@@ -174,18 +184,22 @@ public class UClient {
 	protected void read() {
 		try {
 			ByteBuffer buffer = ByteBuffer.allocate(1448);
-			while (true) {
+			try {
 				// Read the socket
-				buffer.clear();
 				ensureConnection();
-				while (channel.read(buffer) == 0);
+				buffer.clear();
+				while (channel.read(buffer) == 0)
+					;
 				buffer.flip();
 
-				while (buffer.position() < buffer.limit()) {
+				while (true) {
 					UMessage msg = Parser.parse(buffer, channel);
 					if (msg != null)
 						notifyCallback(msg);
 				}
+			} catch (ClosedChannelException e) {
+				// The channel is closed
+				logger().d("UClient", "The channel is closed");
 			}
 		} catch (IOException e) {
 			throw new UrbiException("Error thrown on read socket", e);
