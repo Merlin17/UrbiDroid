@@ -25,64 +25,82 @@ public class Logger {
 	}
 
 	public boolean isDebug() {
-		return level.ordinal() >= Level.DEBUG.ordinal();
+		return level.ordinal() <= Level.DEBUG.ordinal();
 	}
 
 	public boolean isInfo() {
-		return level.ordinal() >= Level.WARN.ordinal();
+		return level.ordinal() <= Level.WARN.ordinal();
 	}
 
 	public boolean isWarn() {
-		return level.ordinal() >= Level.WARN.ordinal();
+		return level.ordinal() <= Level.WARN.ordinal();
 	}
 
 	public boolean isError() {
-		return level.ordinal() >= Level.ERROR.ordinal();
+		return level.ordinal() <= Level.ERROR.ordinal();
+	}
+
+	private void header(String tag) {
+		System.out.print("[");
+		System.out.print(tag);
+		System.out.print("] ");
 	}
 
 	public void d(String tag, String msg) {
-		if (isDebug())
+		if (isDebug()) {
+			header(tag);
 			System.out.println(msg);
+		}
 	}
 
 	public void d(String tag, String msg, Throwable e) {
 		if (isDebug()) {
+			header(tag);
 			System.out.println(msg);
 			e.printStackTrace(System.out);
 		}
 	}
 
 	public void i(String tag, String msg) {
-		if (isInfo())
+		if (isInfo()) {
+			header(tag);
 			System.out.println(msg);
+		}
 	}
 
 	public void i(String tag, String msg, Throwable e) {
 		if (isInfo()) {
+			header(tag);
 			System.out.println(msg);
 			e.printStackTrace(System.out);
 		}
 	}
 
 	public void w(String tag, String msg) {
-		if (isWarn())
+		if (isWarn()) {
+			header(tag);
 			System.out.println(msg);
+		}
 	}
 
 	public void w(String tag, String msg, Throwable e) {
 		if (isWarn()) {
+			header(tag);
 			System.out.println(msg);
 			e.printStackTrace(System.out);
 		}
 	}
 
 	public void e(String tag, String msg) {
-		if (isError())
+		if (isError()) {
+			header(tag);
 			System.out.println(msg);
+		}
 	}
 
 	public void e(String tag, String msg, Throwable e) {
 		if (isError()) {
+			header(tag);
 			System.out.println(msg);
 			e.printStackTrace(System.err);
 		}
