@@ -21,9 +21,9 @@ import fr.flafla.android.urbi.control.Camera;
  */
 public class Spykee extends Robot {
 	/** Frequency of the camera */
-	private static final double CAMERA_FREQUENCY = (double) 100 / 1000.;
+	private static final double CAMERA_FREQUENCY = (double) 40. / 1000.;
 	/** Interval between 2 spykee movement order */
-	private static final int INTERVAL_BETWEEN_MOVEMENT = 250;
+	private static final int INTERVAL_BETWEEN_MOVEMENT = 125;
 
 	UClient uClient;
 	SpykeeMovement threadMovement;
