@@ -1,5 +1,7 @@
 package fr.flafla.android.urbi;
 
+import static fr.flafla.android.urbi.log.LoggerFactory.logger;
+
 import java.io.InputStream;
 
 import android.app.Activity;
@@ -8,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import fr.flafla.android.urbi.control.Camera;
 import fr.flafla.android.urbi.control.Camera.ImageHandler;
 import fr.flafla.android.urbi.control.Joystick;
@@ -22,9 +23,9 @@ public class MainActivity extends Activity {
 		@Override
 		public void run() {
 			// display the image on background
-			LinearLayout layout = (LinearLayout) findViewById(R.id.panel);
-			BitmapDrawable drawable = new BitmapDrawable(bitmap);
-			layout.setBackgroundDrawable(drawable);
+			logger().i("Main", "image");
+			VideoSurfaceView videoView = (VideoSurfaceView) findViewById(R.id.video);
+			videoView.setBitmap(new BitmapDrawable(bitmap));
 			bitmap = null;
 		}
 	};
@@ -37,7 +38,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
 		Robot.actuel = new FakeRobot(this);
-		// Robot.actuel = new Spykee("192.168.1.14", UClient.PORT);
+		// Robot.actuel = new Spykee("192.168.1.15", UClient.PORT);
 
 		// Hide title and notification bar
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -46,12 +47,11 @@ public class MainActivity extends Activity {
 		// Set the main view
 		setContentView(R.layout.main);
 
-		LinearLayout layout = (LinearLayout) findViewById(R.id.panel);
-
-		Joystick joystick = new Joystick(this);
-		layout.addView(joystick);
+		// Set axes to the joystick view
+		Joystick joystick = (Joystick) findViewById(R.id.joystick);
 		joystick.setAxes(Robot.actuel.getAxes());
-        
+
+		// Initialize the first robot camera
 		Camera camera = Robot.actuel.getCameras()[0];
 		camera.addHandler(new ImageHandler() {
 			public void handle(InputStream bitmap) {
@@ -60,10 +60,7 @@ public class MainActivity extends Activity {
 				imageHandler.post(imageDisplayer);
 			}
 		});
-
 		camera.start();
-        
-        
     }
     
 	@Override
