@@ -99,9 +99,8 @@ public class UrbiFakeServer {
 	 * @throws IOException
 	 */
 	private void runServer(Socket socket) throws SocketException, IOException {
+		BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		while (socket.isConnected()) {
-			BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
 			String line = input.readLine();
 			if (line != null) {
 				String msg = new String(line);
