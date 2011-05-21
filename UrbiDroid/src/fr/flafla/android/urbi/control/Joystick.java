@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -151,6 +152,16 @@ public class Joystick extends View implements OnTouchListener {
 
 	public Joystick(Context context) {
 		super(context);
+		setOnTouchListener(this);
+	}
+
+	public Joystick(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
+		setOnTouchListener(this);
+	}
+
+	public Joystick(Context context, AttributeSet attrs) {
+		super(context, attrs);
 		setOnTouchListener(this);
 	}
 
