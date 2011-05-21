@@ -29,7 +29,8 @@ public final class Parser {
 
 			// [0-9+:a-Z+] (BIN | msg)
 			String deleted = getNextToken(channel, buffer, '[');
-			logger().d("UrbiParser", "deleted : " + deleted);
+			if (deleted.length() > 0)
+				logger().w("UrbiParser", "deleted : " + deleted);
 			// Read time
 			String time = getNextToken(channel, buffer, ':');
 			// Read tag
