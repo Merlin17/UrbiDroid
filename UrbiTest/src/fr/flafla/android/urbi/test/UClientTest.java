@@ -125,7 +125,7 @@ public class UClientTest {
 		logger().d("Client", "counterBinary.value = " + counterBinary.value());
 
 		Assert.assertEquals(16, counter.value());
-		Assert.assertEquals(4, counterBinary.value());
+		Assert.assertEquals(5, counterBinary.value());
 	}
 
 }
